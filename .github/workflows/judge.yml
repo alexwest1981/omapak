@@ -27,8 +27,17 @@ jobs:
           sudo apt-get update
           # libcairo/girepository headers: PyGObject (a flatpak-builder-lint
           # dependency) compiles from source on noble.
-          sudo apt-get install -y flatpak flatpak-builder pipx \
+          sudo apt-get install -y flatpak pipx \
             pkg-config libcairo2-dev libgirepository1.0-dev libglib2.0-dev
+          # apt's flatpak-builder (1.4.2) cannot expand bare-string source
+          # lists — the standard generated-sources/cargo-sodes pattern in
+          # modern manifests. Use the current org.flatpak.Builder instead,
+          # wrapped as `flatpak-builder` so the judge binary is unchanged.
+          flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak --user install -y --noninteractive flathub org.flatpak.Builder
+          sudo mkdir -p /usr/local/bin
+          printf '#!/bin/sh\nexec flatpak run org.flatpak.Builder "$@"\n' | sudo tee /usr/local/bin/flatpak-builder >/dev/null
+          sudo chmod +x /usr/local/bin/flatpak-builder
           # Not on PyPI under this name; install from the flathub git repo.
           pipx install git+https://github.com/flathub/flatpak-builder-lint.git
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
@@ -78,7 +87,7 @@ jobs:
           done
 
       - name: Clone upstream sources for the digest
-        if: github.event_name == 'pull_request'
+        if: "!cancelled() && github.event_name == 'pull_request'"
         run: |
           while read -r app; do
             [ -f "$app/metadata.yml" ] || continue
@@ -87,7 +96,12 @@ jobs:
             git clone --depth 100 "$repo" "sources/$(basename "$app")" || echo "::warning::clone failed for $repo"
           done < changed.txt
 
+      # !cancelled(): a red judge run means an app failed a gate/build —
+      # exactly when the partial report (with the reason) must reach
+      # judge-report.yml. The default success() condition was silently
+      # discarding it.
       - uses: actions/upload-artifact@v4
+        if: "!cancelled()"
         with:
           name: judge-partial
           path: |
@@ -99,7 +113,7 @@ jobs:
   # Main-branch pushes have secrets: full agent run, commit reports back
   # into apps/ so every accepted app carries its public report in-repo.
   report:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: "!cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main'"
     needs: [static-build]
     runs-on: ubuntu-latest
     steps:
