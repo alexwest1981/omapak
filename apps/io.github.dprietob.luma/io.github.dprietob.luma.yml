@@ -50,6 +50,9 @@ modules:
     buildsystem: cmake-ninja
     config-opts:
       - -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+      # GNUInstallDirs picks lib64 on this SDK, outside the pkg-config
+      # search path — keep the .pc and library in lib like portaudio.
+      - -DCMAKE_INSTALL_LIBDIR=lib
       - -DBUILD_SHARED_LIBS=ON
       - -DSOUNDSTRETCH=OFF
       - -DSOUNDTOUCH_DLL=OFF
