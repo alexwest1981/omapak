@@ -27,8 +27,17 @@ jobs:
           sudo apt-get update
           # libcairo/girepository headers: PyGObject (a flatpak-builder-lint
           # dependency) compiles from source on noble.
-          sudo apt-get install -y flatpak flatpak-builder pipx \
+          sudo apt-get install -y flatpak pipx \
             pkg-config libcairo2-dev libgirepository1.0-dev libglib2.0-dev
+          # apt's flatpak-builder (1.4.2) cannot expand bare-string source
+          # lists — the standard generated-sources/cargo-sodes pattern in
+          # modern manifests. Use the current org.flatpak.Builder instead,
+          # wrapped as `flatpak-builder` so the judge binary is unchanged.
+          flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak --user install -y --noninteractive flathub org.flatpak.Builder
+          sudo mkdir -p /usr/local/bin
+          printf '#!/bin/sh\nexec flatpak run org.flatpak.Builder "$@"\n' | sudo tee /usr/local/bin/flatpak-builder >/dev/null
+          sudo chmod +x /usr/local/bin/flatpak-builder
           # Not on PyPI under this name; install from the flathub git repo.
           pipx install git+https://github.com/flathub/flatpak-builder-lint.git
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
