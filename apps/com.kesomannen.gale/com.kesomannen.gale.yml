@@ -44,5 +44,5 @@ modules:
       - type: file
         url: https://github.com/Kesomannen/gale/releases/download/1.13.4/Gale_1.13.4_amd64.AppImage
         dest-filename: gale.AppImage
-        sha256: c7f1da03ba5da978bf05bbff041cbabab71f5ec44e1ffe52886373bfe7b13fcd
+        sha256: 4f91b29160ca7042a78ae03949446802742561c938db1014be2234ba614701ff
         only-arches: [x86_64]
