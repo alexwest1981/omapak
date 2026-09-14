@@ -84,6 +84,11 @@ for m in $paths; do
   if [ -n "$rt" ] && [ -n "$rv" ]; then
     sdk=$(echo "$rt" | sed 's/Platform/Sdk/')
     install_retry "$rt//$rv" "$sdk//$rv"
+    # A manifest may pin its own SDK with a branch (extension-style
+    # `sdk: org.kde.Sdk//5.15-25.08`); install it verbatim — the derived
+    # Platform→Sdk ref above does not cover that shape.
+    psdk=$(grep -m1 -E '^"?sdk"?:' "$m" | cut -d: -f2- | tr -d '"' | tr -d "'" | sed 's/[[:space:]#].*//')
+    case "$psdk" in *//*) install_retry "$psdk" ;; esac
     # Extensions are versioned alongside the SDK; flatpak-builder fails
     # outright ("Requested extension ... not installed") without them.
     for ext in $(sdk_exts "$m"); do
