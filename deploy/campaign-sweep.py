@@ -65,29 +65,27 @@ def api(url, tries=3):
 
 def flathub_prs_closed_since(hours):
     since = (datetime.now(timezone.utc) - timedelta(hours=hours)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    q = f"repo:{FLATHUB}+is:pr+is:closed+closed:>{since}+Add+in:title"
+    # Plain list endpoint, not search: Actions' installation token returns
+    # empty results from the search API, while list endpoints work fine.
+    # Closed PRs get bot-comment updates constantly, so updated-desc keeps
+    # a fresh close window inside the first few pages.
     prs, page = [], 1
-    while True:
-        status, data = api(
-            "https://api.github.com/search/issues?q=" + q + f"&per_page=100&page={page}"
+    while page <= 5:
+        status, batch = api(
+            f"https://api.github.com/repos/{FLATHUB}/pulls"
+            f"?state=closed&sort=updated&direction=desc&per_page=100&page={page}"
         )
-        if status != 200 or not data.get("items"):
+        if status != 200 or not batch:
             break
-        prs.extend(data["items"])
-        if len(data["items"]) < 100 or page >= 10:
-            break
+        prs.extend(batch)
         page += 1
     out = []
     for p in prs:
-        # search can't express "never merged"; PRs merged also close —
-        # the pulls endpoint tells them apart. Cheap enough per-candidate.
-        st, full = api(f"https://api.github.com/repos/{FLATHUB}/pulls/{p['number']}")
-        if st == 200 and full.get("merged_at"):
+        if p.get("merged_at") or not p.get("closed_at") or p["closed_at"] <= since:
             continue
         if not p["title"].startswith("Add "):
             continue
-        out.append({"number": p["number"], "title": p["title"],
-                    "user": {"login": p["user"]["login"]}})
+        out.append(p)
     return out
 
 
