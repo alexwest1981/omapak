@@ -17,30 +17,32 @@ jobs:
   # secrets; GitHub rejects workflows that workflow_run-reference themselves).
   static-build:
     runs-on: ubuntu-latest
+    # The judge builds submissions with a CURRENT flatpak-builder. Every
+    # other arrangement failed on 2026-09-14: apt's 1.4.2 can't expand
+    # bare-string source lists; the org.flatpak.Builder wrapper's sandbox
+    # rewrites XDG_DATA_HOME so its libflatpak finds NO installation
+    # (user or system — verified with a probe workflow); compiling 1.4.11
+    # from the release tarball trips on noble's broken appstreamcli
+    # compose; docker-run nesting dies at bwrap's fd passing. Running the
+    # job itself in flathub's image (privileged container, bwrap native)
+    # is the same mechanism bilelmoussaoui/flatpak-github-actions uses.
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:kde-6.10
+      options: --privileged
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install flatpak tooling
+      - name: Sanity-check toolchain
         run: |
-          sudo apt-get update
-          # libcairo/girepository headers: PyGObject (a flatpak-builder-lint
-          # dependency) compiles from source on noble.
-          sudo apt-get install -y flatpak pipx \
-            pkg-config libcairo2-dev libgirepository1.0-dev libglib2.0-dev
-          # apt's flatpak-builder (1.4.2) cannot expand bare-string source
-          # lists — the standard generated-sources/cargo-sodes pattern in
-          # modern manifests. Use the current org.flatpak.Builder instead,
-          # wrapped as `flatpak-builder` so the judge binary is unchanged.
-          flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-          flatpak --user install -y --noninteractive flathub org.flatpak.Builder
-          sudo mkdir -p /usr/local/bin
-          printf '#!/bin/sh\nexec flatpak run org.flatpak.Builder "$@"\n' | sudo tee /usr/local/bin/flatpak-builder >/dev/null
-          sudo chmod +x /usr/local/bin/flatpak-builder
-          # Not on PyPI under this name; install from the flathub git repo.
-          pipx install git+https://github.com/flathub/flatpak-builder-lint.git
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          flatpak-builder --version
+          flatpak-builder-lint --version
+
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
       - name: Changed app dirs
         if: github.event_name == 'pull_request'
@@ -50,17 +52,12 @@ jobs:
               | grep '^apps/' | cut -d/ -f1-2 | sort -u || true
           } | tee changed.txt
 
-      # /var/lib/flatpak (system installation): the org.flatpak.Builder
-      # wrapper can only see system-installed runtimes. Cache restores
-      # as the runner user — hand ownership back to root.
       - name: Cache flatpak runtimes
         uses: actions/cache@v4
         with:
-          path: /var/lib/flatpak
-          key: flatpak-runtimes-sys-${{ hashFiles('apps/**/com.*', 'apps/**/io.*', 'apps/**/net.*') }}-v1
-          restore-keys: flatpak-runtimes-sys-
-      - name: Fix runtime cache ownership
-        run: sudo chown -R root:root /var/lib/flatpak
+          path: ~/.local/share/flatpak
+          key: flatpak-runtimes-${{ hashFiles('apps/**/com.*', 'apps/**/io.*', 'apps/**/net.*') }}-v1
+          restore-keys: flatpak-runtimes-
 
       # PR runs provision ONLY the changed app's toolchain: installing
       # every runtime in the merged tree (~10GB) has exhausted runner
@@ -73,7 +70,6 @@ jobs:
             ./deploy/install-runtimes.sh
           fi
 
-      - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
 
       - name: Judge - static + build (no agent keys in this job)
