@@ -1,5 +1,7 @@
 #!/bin/bash
-flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+# User installs: the judge job runs inside the flathub-infra container
+# (see judge.yml), where a native flatpak-builder sees them fine.
+flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
 
 strip() {
   echo "$1" | sed 's/[^a-zA-Z0-9._-]//g'
@@ -44,7 +46,7 @@ sdk_exts() {
 # so the listing is fetched once per run and cached.
 ext_branches() {
   [ -s /tmp/ext-refs.txt ] || \
-    flatpak --user remote-ls flathub --runtime --columns=ref > /tmp/ext-refs.txt 2>/dev/null || true
+    flatpak remote-ls flathub --runtime --columns=ref > /tmp/ext-refs.txt 2>/dev/null || true
   grep "^runtime/$1/x86_64/" /tmp/ext-refs.txt | cut -d/ -f4
 }
 
