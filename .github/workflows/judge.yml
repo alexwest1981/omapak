@@ -30,6 +30,10 @@ jobs:
       image: ghcr.io/flathub-infra/flatpak-github-actions:kde-6.10
       options: --privileged
     steps:
+      # GitHub injects HOME=/github/home into job containers, but the
+      # image runs as root — flatpak refuses the mismatch ("$HOME
+      # differs from euid-obtained home directory"). Align them.
+      - run: 'echo "HOME=/root" >> "$GITHUB_ENV"'
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
