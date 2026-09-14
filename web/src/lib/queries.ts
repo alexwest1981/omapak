@@ -27,7 +27,11 @@ export function useFlathub() {
 export function useReport(appId: string) {
   return createQuery({
     queryKey: ["report", appId],
-    queryFn: () => fetchJson<Report>(`/data/reports/${appId}.json`),
+    // Live reports are pushed to R2 by judge-report; the static copy is
+    // only a build-time fallback.
+    queryFn: () =>
+      fetchJson<Report>(`https://repo.omapak.org/reports/${appId}.json`)
+        .catch(() => fetchJson<Report>(`/data/reports/${appId}.json`)),
     staleTime: Infinity,
     retry: 1,
   });
