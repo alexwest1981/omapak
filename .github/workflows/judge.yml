@@ -27,11 +27,42 @@ jobs:
           sudo apt-get update
           # libcairo/girepository headers: PyGObject (a flatpak-builder-lint
           # dependency) compiles from source on noble.
-          sudo apt-get install -y flatpak flatpak-builder pipx \
+          sudo apt-get install -y flatpak pipx \
             pkg-config libcairo2-dev libgirepository1.0-dev libglib2.0-dev
           # Not on PyPI under this name; install from the flathub git repo.
           pipx install git+https://github.com/flathub/flatpak-builder-lint.git
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      # noble's flatpak-builder 1.4.2 can't expand bare-string source
+      # includes and garbles version-pinned sdk-extensions — both standard
+      # in current manifests. Build the current release instead; its only
+      # build-time hazard is an appstreamcli probe that noble's appstreamcli
+      # 1.0.2 fails, patched out below (compose features unused by us).
+      - name: Cache flatpak-builder 1.4.11
+        id: fbcache
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/bin/flatpak-builder
+          key: flatpak-builder-1.4.11-v1
+      - name: Build flatpak-builder 1.4.11
+        if: steps.fbcache.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get install -y meson ninja-build build-essential \
+            libflatpak-dev libcurl4-openssl-dev libyaml-dev libjson-glib-dev elfutils
+          curl -sL -o /tmp/fb.tar.xz \
+            https://github.com/flatpak/flatpak-builder/releases/download/1.4.11/flatpak-builder-1.4.11.tar.xz
+          echo "2a5ef4f3eaea86f808aa477e57e65b6f68978eb1c034fafe05bffdebbf1dcd03  /tmp/fb.tar.xz" | sha256sum -c
+          tar -C /tmp -xf /tmp/fb.tar.xz
+          cd /tmp/flatpak-builder-1.4.11
+          sed -i \
+            -e "s|find_program('appstreamcli', version: '>= 0.15.0')|find_program('appstreamcli', version: '>= 0.15.0', required: false)|" \
+            -e "s|run_command(appstreamcli, \['compose', '--help'\], check: true)|run_command('false', check: false)|" \
+            meson.build
+          meson setup build --buildtype=release -D docs=disabled -D tests=false
+          ninja -C build
+          sudo install -m755 build/flatpak-builder /usr/local/bin/flatpak-builder
+      - name: flatpak-builder version check
+        run: flatpak-builder --version
 
       - name: Changed app dirs
         if: github.event_name == 'pull_request'
