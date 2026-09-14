@@ -40,8 +40,8 @@ modules:
       - install -Dm644 net.mccompanion.MCCompanion.metainfo.xml /app/share/metainfo/net.mccompanion.MCCompanion.metainfo.xml
     sources:
       - type: archive
-        url: https://github.com/MCCORG/MCCompanion/releases/latest/download/MCCompanion-linux-x64.tar.gz
-        sha256: cd68276538f40bf7c486774394362740e0e7ecbd8d7d1003f017ae993aba2a2b
+        url: https://github.com/MCCORG/MCCompanion/releases/download/v4.1.9/MCCompanion-linux-x64.tar.gz
+        sha256: 1155cb72484b6a4e42653ae2cd31a5a164edcea750a393467878a6c728a179fe
         x-checker-data:
           type: json
           url: https://api.github.com/repos/MCCORG/MCCompanion/releases/latest
