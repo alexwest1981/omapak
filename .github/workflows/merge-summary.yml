@@ -11,6 +11,12 @@ on:
 permissions:
   contents: read
 
+# Shares the publish concurrency group: this workflow re-signs the live
+# summary and must never interleave with a publish pushing its own.
+concurrency:
+  group: repo-publish
+  cancel-in-progress: false
+
 jobs:
   merge:
     runs-on: ubuntu-latest
@@ -36,7 +42,7 @@ jobs:
           [ -n "$(ls repo/refs/heads/app/ 2>/dev/null)" ] || { echo "::error::omapak app refs missing after restore"; exit 1; }
 
       - name: Install tooling
-        run: sudo apt-get update && sudo apt-get install -y flatpak ostree rclone
+        run: sudo apt-get update && sudo apt-get install -y flatpak ostree
 
       - name: Refresh flathub refs
         run: |
