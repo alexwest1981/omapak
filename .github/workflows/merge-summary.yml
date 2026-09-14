@@ -11,6 +11,12 @@ on:
 permissions:
   contents: read
 
+# Shares the publish concurrency group: this workflow re-signs the live
+# summary and must never interleave with a publish pushing its own.
+concurrency:
+  group: repo-publish
+  cancel-in-progress: false
+
 jobs:
   merge:
     runs-on: ubuntu-latest
