@@ -31,5 +31,5 @@ modules:
     sources:
       - type: git
         url: https://github.com/alejandroqh/term39.git
-        commit: 96dafc475c98953b94f3d1bf6674c3f5574672fd
+        commit: 4b1c112b7529c8bad764e9514f096d12e4832902 # v1.5.2 — pinned commit was force-pushed out of upstream history
       - cargo-sources.json
