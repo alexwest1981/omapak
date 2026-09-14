@@ -24,6 +24,7 @@ import os
 import re
 import sys
 import time
+import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
@@ -111,10 +112,8 @@ def submitted_app_ids():
 
 
 def digest_issue():
-    status, data = api(
-        f"https://api.github.com/search/issues?q=repo:{OMAPAK}+is:issue+is:open"
-        f'+in:title+"{DIGEST_ISSUE_TITLE}"'
-    )
+    q = urllib.parse.quote(f'repo:{OMAPAK} is:issue is:open in:title "{DIGEST_ISSUE_TITLE}"')
+    status, data = api(f"https://api.github.com/search/issues?q={q}")
     if status == 200:
         for item in data.get("items", []):
             if item["title"] == DIGEST_ISSUE_TITLE:
