@@ -26,7 +26,7 @@ modules:
     sources:
       - type: archive
         url: https://github.com/redisviewer/redisviewer/releases/download/v3.2.4/RedisViewer_3.2.4_linux_amd64_bin.tar.gz
-        sha256: 7460c8fdcdf35c22141a6bf55783803350c4e2950e1bff8513d6a76f3e59b85f
+        sha256: af4eb138005373bbb7056e4a2958521f54577ab3daabbb7a804d0252ab78f6d0
         strip-components: 0
         only-arches:
           - x86_64
