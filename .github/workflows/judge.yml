@@ -48,7 +48,7 @@ jobs:
         if: steps.fbcache.outputs.cache-hit != 'true'
         run: |
           sudo apt-get install -y meson ninja-build build-essential \
-            libflatpak-dev libcurl4-openssl-dev libyaml-dev libjson-glib-dev elfutils
+            libflatpak-dev libcurl4-openssl-dev libyaml-dev libjson-glib-dev libelf-dev
           curl -sL -o /tmp/fb.tar.xz \
             https://github.com/flatpak/flatpak-builder/releases/download/1.4.11/flatpak-builder-1.4.11.tar.xz
           echo "2a5ef4f3eaea86f808aa477e57e65b6f68978eb1c034fafe05bffdebbf1dcd03  /tmp/fb.tar.xz" | sha256sum -c
