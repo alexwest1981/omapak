@@ -117,21 +117,43 @@ pub fn parse_manifest(text: &str) -> anyhow::Result<ManifestInfo> {
 }
 
 /// Find the manifest file in an app dir: the JSON/YAML named after the app id
-/// (flathub convention), else any single *.json/*.yml/*.yaml at the top level.
+/// (flathub convention — the app dir itself is named after the app id), else
+/// any single *.json/*.yml/*.yaml at the top level. metadata.yml and vendored
+/// sources files (cargo-sources.json, python3-dependencies.json, …) are
+/// excluded outright, not just deprioritized — they aren't manifests, and the
+/// extension tie-break could still hand them to flatpak-builder.
 pub fn find_manifest(dir: &Path) -> Option<std::path::PathBuf> {
+    let dir_name = dir.file_name().and_then(|n| n.to_str()).unwrap_or("");
     let entries = std::fs::read_dir(dir).ok()?;
     let mut candidates: Vec<std::path::PathBuf> = entries
         .flatten()
         .map(|e| e.path())
         .filter(|p| {
-            p.is_file()
-                && p.extension().map(|e| e == "json" || e == "yml" || e == "yaml").unwrap_or(false)
+            if !p.is_file() {
+                return false;
+            }
+            if !p
+                .extension()
+                .map(|e| e == "json" || e == "yml" || e == "yaml")
+                .unwrap_or(false)
+            {
+                return false;
+            }
+            let name = p.file_name().and_then(|n| n.to_str()).unwrap_or("");
+            let stem = name
+                .trim_end_matches(".json")
+                .trim_end_matches(".yml")
+                .trim_end_matches(".yaml");
+            stem != "metadata"
+                && !name.ends_with("-sources.json")
+                && !name.ends_with("-dependencies.json")
         })
         .collect();
     candidates.sort_by_key(|p| {
         let name = p.file_name().and_then(|n| n.to_str()).unwrap_or("");
-        // Prefer <app-id>.json, then .yml/.yaml, then anything else.
-        (!name.ends_with(".json"), !name.ends_with(".yml") && !name.ends_with(".yaml"))
+        let stem = name.trim_end_matches(".json").trim_end_matches(".yml").trim_end_matches(".yaml");
+        let tier = if stem == dir_name && !stem.is_empty() { 0 } else { 1 };
+        (tier, !name.ends_with(".json"))
     });
     candidates.into_iter().next()
 }
@@ -191,5 +213,59 @@ modules:
     #[test]
     fn rejects_manifest_without_id() {
         assert!(parse_manifest("runtime: org.gnome.Platform").is_err());
+    }
+
+    #[test]
+    fn find_manifest_prefers_app_id_named_file_over_sources_json() {
+        let dir = tempfile::tempdir().unwrap();
+        let base = dir.path().join("io.github.example.app");
+        std::fs::create_dir_all(&base).unwrap();
+        std::fs::write(base.join("cargo-sources.json"), "[]").unwrap();
+        std::fs::write(base.join("metadata.yml"), "submitter: jon").unwrap();
+        std::fs::write(base.join("io.github.example.app.yml"), "app-id: io.github.example.app").unwrap();
+        assert_eq!(
+            find_manifest(&base).unwrap().file_name().unwrap().to_str().unwrap(),
+            "io.github.example.app.yml"
+        );
+    }
+
+    #[test]
+    fn find_manifest_prefers_app_id_named_json_over_yml() {
+        let dir = tempfile::tempdir().unwrap();
+        let app_id = "io.github.example.app";
+        let base = dir.path().join(app_id);
+        std::fs::create_dir_all(&base).unwrap();
+        std::fs::write(base.join(format!("{app_id}.yml")), "app-id: x").unwrap();
+        std::fs::write(base.join(format!("{app_id}.json")), "{}").unwrap();
+        assert_eq!(
+            find_manifest(&base).unwrap().file_name().unwrap().to_str().unwrap(),
+            format!("{app_id}.json")
+        );
+    }
+
+    #[test]
+    fn find_manifest_never_returns_metadata_yml() {
+        let dir = tempfile::tempdir().unwrap();
+        let base = dir.path().join("me.example.app");
+        std::fs::create_dir_all(&base).unwrap();
+        std::fs::write(base.join("metadata.yml"), "submitter: jon\nlicense: MIT\nhomepage: https://x").unwrap();
+        std::fs::write(base.join("me.example.app.yml"), "app-id: me.example.app").unwrap();
+        assert_eq!(
+            find_manifest(&base).unwrap().file_name().unwrap().to_str().unwrap(),
+            "me.example.app.yml"
+        );
+    }
+
+    #[test]
+    fn find_manifest_deprioritizes_sources_files_without_app_id_manifest() {
+        let dir = tempfile::tempdir().unwrap();
+        let base = dir.path().join("com.example.App");
+        std::fs::create_dir_all(&base).unwrap();
+        std::fs::write(base.join("python3-dependencies.json"), "{}").unwrap();
+        std::fs::write(base.join("manifest.yml"), "app-id: com.example.App").unwrap();
+        assert_eq!(
+            find_manifest(&base).unwrap().file_name().unwrap().to_str().unwrap(),
+            "manifest.yml"
+        );
     }
 }
