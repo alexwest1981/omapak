@@ -28,7 +28,9 @@ jobs:
     # is the same mechanism bilelmoussaoui/flatpak-github-actions uses.
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:kde-6.10
-      options: --privileged
+      # --workdir: the image's own WORKDIR would otherwise shadow the
+      # workspace (steps ran from / — "Not a git repository").
+      options: --privileged --workdir /__w/omapak/omapak
     steps:
       # GitHub injects HOME=/github/home into job containers, but the
       # image runs as root — flatpak refuses the mismatch ("$HOME
