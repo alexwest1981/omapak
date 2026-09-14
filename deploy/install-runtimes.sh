@@ -1,5 +1,10 @@
 #!/bin/bash
-flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+# Runtimes install to the SYSTEM installation: the org.flatpak.Builder
+# wrapper (sandboxed flatpak-builder) cannot see user installations —
+# flatpak rewrites XDG_DATA_HOME inside the sandbox, so its libflatpak
+# only ever finds /var/lib/flatpak (verified 2026-09-14: "Unable to find
+# sdk" for runtimes installed --user).
+sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
 
 strip() {
   echo "$1" | sed 's/[^a-zA-Z0-9._-]//g'
@@ -12,7 +17,7 @@ failed=""
 install_retry() {
   echo "Installing $*"
   for attempt in 1 2 3; do
-    if flatpak install --user -y --noninteractive flathub "$@" >/tmp/rt-install.log 2>&1; then
+    if sudo flatpak install --system -y --noninteractive flathub "$@" >/tmp/rt-install.log 2>&1; then
       grep -m3 . /tmp/rt-install.log | tail -3
       return 0
     fi
@@ -44,7 +49,7 @@ sdk_exts() {
 # so the listing is fetched once per run and cached.
 ext_branches() {
   [ -s /tmp/ext-refs.txt ] || \
-    flatpak --user remote-ls flathub --runtime --columns=ref > /tmp/ext-refs.txt 2>/dev/null || true
+    flatpak remote-ls flathub --runtime --columns=ref > /tmp/ext-refs.txt 2>/dev/null || true
   grep "^runtime/$1/x86_64/" /tmp/ext-refs.txt | cut -d/ -f4
 }
 
@@ -105,7 +110,7 @@ done
 install_retry org.freedesktop.Platform//24.08 org.freedesktop.Sdk//24.08
 
 echo '=== installed runtimes:'
-flatpak list --user --runtime 2>/dev/null | head -20
+flatpak list --system --runtime 2>/dev/null | head -20
 # Record failures for the end-of-publish gate; apps needing a missing
 # runtime fail (loudly) in the build step, but must not block the push —
 # one broken upstream object can't hold the whole repo hostage. A

@@ -50,12 +50,17 @@ jobs:
               | grep '^apps/' | cut -d/ -f1-2 | sort -u || true
           } | tee changed.txt
 
+      # /var/lib/flatpak (system installation): the org.flatpak.Builder
+      # wrapper can only see system-installed runtimes. Cache restores
+      # as the runner user — hand ownership back to root.
       - name: Cache flatpak runtimes
         uses: actions/cache@v4
         with:
-          path: ~/.local/share/flatpak
-          key: flatpak-runtimes-${{ hashFiles('apps/**/com.*', 'apps/**/io.*', 'apps/**/net.*') }}-v1
-          restore-keys: flatpak-runtimes-
+          path: /var/lib/flatpak
+          key: flatpak-runtimes-sys-${{ hashFiles('apps/**/com.*', 'apps/**/io.*', 'apps/**/net.*') }}-v1
+          restore-keys: flatpak-runtimes-sys-
+      - name: Fix runtime cache ownership
+        run: sudo chown -R root:root /var/lib/flatpak
 
       # PR runs provision ONLY the changed app's toolchain: installing
       # every runtime in the merged tree (~10GB) has exhausted runner
