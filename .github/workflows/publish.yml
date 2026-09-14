@@ -9,6 +9,16 @@ on:
 permissions:
   contents: read
 
+# Serialize every summary writer. Concurrent publishes each restore R2
+# at their own start and push their own summary — the last one to land
+# wins and can drop refs the others added (four merges in 14 minutes
+# once left three newly-merged apps out of the live summary). No
+# cancel-in-progress: killing a run between the summary and summary.sig
+# uploads would break every client.
+concurrency:
+  group: repo-publish
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -43,7 +53,7 @@ jobs:
       - name: Install flatpak tooling
         run: |
           sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder rclone ostree \
+          sudo apt-get install -y flatpak flatpak-builder ostree \
             pkg-config libcairo2-dev libgirepository1.0-dev libglib2.0-dev
 
       - name: Install runtimes
@@ -159,6 +169,19 @@ jobs:
         run: |
           pip install -q boto3
           python3 deploy/push-to-r2.py repo
+
+      # The site reads data/catalog.json from R2 — without this step it
+      # only ever changed when the generator was run by hand (it sat
+      # stale for three days while apps merged).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Rebuild site catalog
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          npm install --prefix web --no-audit --no-fund yaml
+          node web/scripts/push-catalog.mjs
 
       # Gate comes after the push: the repo serves last-good refs for
       # failed apps while the red X makes the failure impossible to miss.
