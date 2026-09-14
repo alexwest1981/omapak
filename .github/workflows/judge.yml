@@ -1,156 +1,76 @@
 name: judge
-
-on:
+true:
   pull_request:
-    paths: ["apps/**"]
+    paths:
+    - apps/**
   push:
-    branches: [main]
-    paths: ["apps/**"]
-
+    branches:
+    - main
+    paths:
+    - apps/**
 permissions:
   contents: write
-
 jobs:
-  # Phase 1: static checks + real build. Runs on PRs and main with NO
-  # secrets, so fork PR code never executes anywhere privileged. The LLM
-  # phase lives in judge-report.yml (workflow_run trigger, so it gets
-  # secrets; GitHub rejects workflows that workflow_run-reference themselves).
   static-build:
     runs-on: ubuntu-latest
-    # The judge builds submissions with a CURRENT flatpak-builder. Every
-    # other arrangement failed on 2026-09-14: apt's 1.4.2 can't expand
-    # bare-string source lists; the org.flatpak.Builder wrapper's sandbox
-    # rewrites XDG_DATA_HOME so its libflatpak finds NO installation
-    # (user or system — verified with a probe workflow); compiling 1.4.11
-    # from the release tarball trips on noble's broken appstreamcli
-    # compose; docker-run nesting dies at bwrap's fd passing. Running the
-    # job itself in flathub's image (privileged container, bwrap native)
-    # is the same mechanism bilelmoussaoui/flatpak-github-actions uses.
-    container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:kde-6.10
-      # --workdir: the image's own WORKDIR would otherwise shadow the
-      # workspace (steps ran from / — "Not a git repository").
-      options: --privileged --workdir /__w/omapak/omapak
     steps:
-      # GitHub injects HOME=/github/home into job containers, but the
-      # image runs as root — flatpak refuses the mismatch ("$HOME
-      # differs from euid-obtained home directory"). Align them.
-      - run: 'echo "HOME=/root" >> "$GITHUB_ENV"'
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Install flatpak tooling
+      run: "sudo apt-get update\n# libcairo/girepository headers: PyGObject (a flatpak-builder-lint\n# dependency) compiles from source on noble.\nsudo apt-get install -y flatpak flatpak-builder pipx \\\n  pkg-config libcairo2-dev libgirepository1.0-dev libglib2.0-dev\n# Not on PyPI under this name; install from the flathub git repo.\npipx install git+https://github.com/flathub/flatpak-builder-lint.git\necho \"$HOME/.local/bin\" >> \"$GITHUB_PATH\"\n"
+    - name: Changed app dirs
+      if: github.event_name == 'pull_request'
+      run: "{\n  git diff --name-only origin/main...HEAD \\\n    | grep '^apps/' | cut -d/ -f1-2 | sort -u || true\n} | tee changed.txt\n"
+    - name: Cache flatpak runtimes
+      uses: actions/cache@v4
+      with:
+        path: ~/.local/share/flatpak
+        key: flatpak-runtimes-${{ hashFiles('apps/**/com.*', 'apps/**/io.*', 'apps/**/net.*') }}-v1
+        restore-keys: flatpak-runtimes-
+    - name: Install runtimes
+      run: "if [ \"${{ github.event_name }}\" = \"pull_request\" ] && [ -s changed.txt ]; then\n  ./deploy/install-runtimes.sh $(cat changed.txt)\nelse\n  ./deploy/install-runtimes.sh\nfi\n"
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: Swatinem/rust-cache@v2
+    - name: Judge - static + build (no agent keys in this job)
+      run: "echo \"disk free at judge start: $(df -h / | awk 'NR==2{print $4}')\"\nif [ \"${{ github.event_name }}\" = \"pull_request\" ]; then\n  APPS=$(cat changed.txt)\nelse\n  APPS=$(find apps -mindepth 1 -maxdepth 1 -type d)\nfi\nfor app in $APPS; do\n  [ -d \"$app\" ] || continue\n  echo \"::group::judge $app\"\n  cargo run -q -p omapak-judge -- \"$app\" --out \"out/$(basename \"$app\")\"\n  echo \"::endgroup::\"\ndone\n"
+    - name: Clone upstream sources for the digest
+      if: '!cancelled() && github.event_name == ''pull_request'''
+      run: "while read -r app; do\n  [ -f \"$app/metadata.yml\" ] || continue\n  repo=$(grep -m1 '^source_repo:' \"$app/metadata.yml\" | sed 's/^source_repo:[[:space:]]*//')\n  [ -n \"$repo\" ] || continue\n  git clone --depth 100 \"$repo\" \"sources/$(basename \"$app\")\" || echo \"::warning::clone failed for $repo\"\ndone < changed.txt\n"
+    - uses: actions/upload-artifact@v4
+      if: '!cancelled()'
+      with:
+        name: judge-partial
+        path: 'out/
 
-      - name: Sanity-check toolchain
-        run: |
-          flatpak-builder --version
-          flatpak-builder-lint --version
+          sources/
 
-      - name: Install Rust
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
-          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-
-      - name: Changed app dirs
-        if: github.event_name == 'pull_request'
-        run: |
-          {
-            git diff --name-only origin/main...HEAD \
-              | grep '^apps/' | cut -d/ -f1-2 | sort -u || true
-          } | tee changed.txt
-
-      - name: Cache flatpak runtimes
-        uses: actions/cache@v4
-        with:
-          path: ~/.local/share/flatpak
-          key: flatpak-runtimes-${{ hashFiles('apps/**/com.*', 'apps/**/io.*', 'apps/**/net.*') }}-v1
-          restore-keys: flatpak-runtimes-
-
-      # PR runs provision ONLY the changed app's toolchain: installing
-      # every runtime in the merged tree (~10GB) has exhausted runner
-      # disk and killed the judge mid-step.
-      - name: Install runtimes
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ] && [ -s changed.txt ]; then
-            ./deploy/install-runtimes.sh $(cat changed.txt)
-          else
-            ./deploy/install-runtimes.sh
-          fi
-
-      - uses: Swatinem/rust-cache@v2
-
-      - name: Judge - static + build (no agent keys in this job)
-        run: |
-          echo "disk free at judge start: $(df -h / | awk 'NR==2{print $4}')"
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            APPS=$(cat changed.txt)
-          else
-            APPS=$(find apps -mindepth 1 -maxdepth 1 -type d)
-          fi
-          for app in $APPS; do
-            [ -d "$app" ] || continue
-            echo "::group::judge $app"
-            cargo run -q -p omapak-judge -- "$app" --out "out/$(basename "$app")"
-            echo "::endgroup::"
-          done
-
-      - name: Clone upstream sources for the digest
-        if: "!cancelled() && github.event_name == 'pull_request'"
-        run: |
-          while read -r app; do
-            [ -f "$app/metadata.yml" ] || continue
-            repo=$(grep -m1 '^source_repo:' "$app/metadata.yml" | sed 's/^source_repo:[[:space:]]*//')
-            [ -n "$repo" ] || continue
-            git clone --depth 100 "$repo" "sources/$(basename "$app")" || echo "::warning::clone failed for $repo"
-          done < changed.txt
-
-      # !cancelled(): a red judge run means an app failed a gate/build —
-      # exactly when the partial report (with the reason) must reach
-      # judge-report.yml. The default success() condition was silently
-      # discarding it.
-      - uses: actions/upload-artifact@v4
-        if: "!cancelled()"
-        with:
-          name: judge-partial
-          path: |
-            out/
-            sources/
-          retention-days: 3
-          if-no-files-found: warn
-
-  # Main-branch pushes have secrets: full agent run, commit reports back
-  # into apps/ so every accepted app carries its public report in-repo.
+          '
+        retention-days: 3
+        if-no-files-found: warn
   report:
-    if: "!cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main'"
-    needs: [static-build]
+    if: '!cancelled() && github.event_name == ''push'' && github.ref == ''refs/heads/main'''
+    needs:
+    - static-build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: judge-partial
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Full judge run for every app
-        env:
-          OMAPAK_LLM_BASE_URL: ${{ secrets.OMAPAK_LLM_BASE_URL }}
-          OMAPAK_LLM_KEY: ${{ secrets.OMAPAK_LLM_KEY }}
-          OMAPAK_LLM_MODEL: ${{ secrets.OMAPAK_LLM_MODEL }}
-        run: |
-          for app in apps/*/; do
-            name=$(basename "$app")
-            [ -f "out/$name/report.json" ] || { echo "::warning::$name has no partial report"; continue; }
-            cargo run -q -p omapak-judge -- "$app" --partial "out/$name/report.json" --out "final/$name"
-            cp "final/$name/report.json" "$app/report.json"
-            cp "final/$name/report.md" "$app/report.md"
-          done
-
-      - name: Upload final reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: judge-final
-          path: final/
-          retention-days: 90
-          if-no-files-found: error
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@stable
+    - uses: Swatinem/rust-cache@v2
+    - uses: actions/download-artifact@v4
+      with:
+        name: judge-partial
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Full judge run for every app
+      env:
+        OMAPAK_LLM_BASE_URL: ${{ secrets.OMAPAK_LLM_BASE_URL }}
+        OMAPAK_LLM_KEY: ${{ secrets.OMAPAK_LLM_KEY }}
+        OMAPAK_LLM_MODEL: ${{ secrets.OMAPAK_LLM_MODEL }}
+      run: "for app in apps/*/; do\n  name=$(basename \"$app\")\n  [ -f \"out/$name/report.json\" ] || { echo \"::warning::$name has no partial report\"; continue; }\n  cargo run -q -p omapak-judge -- \"$app\" --partial \"out/$name/report.json\" --out \"final/$name\"\n  cp \"final/$name/report.json\" \"$app/report.json\"\n  cp \"final/$name/report.md\" \"$app/report.md\"\ndone\n"
+    - name: Upload final reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: judge-final
+        path: final/
+        retention-days: 90
+        if-no-files-found: error
