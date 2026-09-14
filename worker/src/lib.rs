@@ -44,15 +44,22 @@ async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
 
     // R2 first (omapak's own objects, plus everything previously cached).
     if let Some(obj) = r2_get(&bucket, &path).await? {
-        let is_summary = path.starts_with("summary");
+        // Content-addressed ostree objects never change; everything the
+        // CI rewrites in place (summaries, the site's data/ files,
+        // judge reports, icons) must revalidate or visitors keep stale
+        // copies for a year.
+        let mutable = path.starts_with("summary")
+            || path.starts_with("data/")
+            || path.starts_with("reports/")
+            || path.starts_with("icons/");
         let mut headers = Headers::new();
         headers.set("Content-Type", "application/octet-stream")?;
-        if is_summary {
+        if mutable {
             headers.set("Cache-Control", "public, max-age=60, must-revalidate")?;
         } else {
             headers.set("Cache-Control", "public, max-age=31536000, immutable")?;
         }
-        headers.set("X-Omapak-Origin", if is_summary { "omapak" } else { "cached" })?;
+        headers.set("X-Omapak-Origin", if path.starts_with("summary") { "omapak" } else { "cached" })?;
         // worker 0.8: body() is Option<ObjectBody>; response_body() hands
         // the stream to the runtime without buffering it in the worker.
         let _ = headers.set("Access-Control-Allow-Origin", "*");

@@ -2,7 +2,6 @@
 // Builds catalog.json from apps/ and pushes it to R2 so the site reads
 // live data from the CDN — no redeploy needed for app changes.
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from "node:fs";
-import { execSync } from "node:child_process";
 import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
@@ -10,6 +9,9 @@ import { parse as parseYaml } from "yaml";
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "../..");
 const tmp = "/tmp/omapak-catalog";
+
+const CF_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+const CF_ACCOUNT = process.env.CF_ACCOUNT || "7396d8475acc6c87ef13e97a617712f1";
 
 // Build the catalog (same logic as build-catalog but writes to tmp)
 mkdirSync(join(tmp, "reports"), { recursive: true });
@@ -63,7 +65,15 @@ for (const name of readdirSync(join(root, "apps"))) {
   }
 
   let report = null;
-  if (existsSync(reportPath)) {
+  // Prefer the LIVE report from R2 (kept fresh by judge-report on every
+  // run); fall back to a committed report.json if the fetch fails.
+  if (CF_TOKEN) {
+    try {
+      const res = await fetch(`https://repo.omapak.org/reports/${name}.json`);
+      if (res.ok) report = await res.json();
+    } catch {}
+  }
+  if (!report && existsSync(reportPath)) {
     try { report = JSON.parse(readFileSync(reportPath, "utf8")); } catch {}
   }
 
@@ -91,22 +101,31 @@ for (const name of readdirSync(join(root, "apps"))) {
 
 writeFileSync(join(tmp, "catalog.json"), JSON.stringify({
   generated_at: new Date().toISOString(),
-  entries: entries.sort((a, b) => a.app_id.localeCompare(b.app_id),
+  entries: entries.sort((a, b) => a.app_id.localeCompare(b.app_id)),
 }, null, 2));
 
-// Push to R2
-const { R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY } = process.env;
-if (!R2_ENDPOINT || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) {
-  console.error("R2 env not set, skipping push");
+// Push to R2 via the Cloudflare API (rclone is gone from CI runners and
+// its S3 uploads fail against R2; the API PUT is the same path the icon
+// uploads below already use).
+if (!CF_TOKEN) {
+  console.error("CLOUDFLARE_API_TOKEN not set, skipping push");
   process.exit(0);
 }
-const r2 = `:s3,provider=Cloudflare,endpoint="${R2_ENDPOINT}":omapak-repo`;
-execSync(`rclone copyto ${tmp}/catalog.json "${r2}/data/catalog.json" --s3-access-key-id ${R2_ACCESS_KEY_ID} --s3-secret-access-key ${R2_SECRET_ACCESS_KEY} --s3-no-check-bucket`, { stdio: "inherit" });
+const catalogRes = await fetch(
+  `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/r2/buckets/omapak-repo/objects/data/catalog.json`,
+  {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${CF_TOKEN}` },
+    body: readFileSync(join(tmp, "catalog.json")),
+  },
+);
+if (!catalogRes.ok) {
+  console.error(`catalog push failed: ${catalogRes.status}`);
+  process.exit(1);
+}
 console.log(`catalog pushed: ${entries.length} apps`);
 
 // Push icons to R2 (non-blocking: failures warn, never kill)
-const CF_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
-const CF_ACCOUNT = process.env.CF_ACCOUNT || "7396d8475acc6c87ef13e97a617712f1";
 const iconsDir = resolve(here, "../static/icons");
 
 if (CF_TOKEN && existsSync(iconsDir)) {
