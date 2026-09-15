@@ -3,7 +3,7 @@ runtime: org.gnome.Platform
 runtime-version: "48"
 sdk: org.gnome.Sdk
 sdk-extensions:
- - org.freedesktop.Sdk.Extension.dotnet9//24.08
+ - org.freedesktop.Sdk.Extension.dotnet9
 build-options:
   prepend-path: "/usr/lib/sdk/dotnet9/bin"
   append-ld-library-path: "/usr/lib/sdk/dotnet9/lib"
