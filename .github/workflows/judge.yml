@@ -60,7 +60,7 @@ jobs:
             meson.build
           meson setup build --buildtype=release -D docs=disabled -D tests=false
           ninja -C build
-          sudo install -m755 build/flatpak-builder /usr/local/bin/flatpak-builder
+          sudo install -m755 build/src/flatpak-builder /usr/local/bin/flatpak-builder
       - name: flatpak-builder version check
         run: flatpak-builder --version
 
