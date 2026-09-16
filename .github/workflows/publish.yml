@@ -53,7 +53,11 @@ jobs:
       - name: Install flatpak tooling
         run: |
           sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder ostree \
+          # elfutils: flatpak-builder's strip phase shells out to eu-strip,
+          # which the 2026-09 runner image drift dropped. (apt's
+          # flatpak-builder 1.4.2 extracts zips and composes appstream
+          # in-process, so it needs none of the judge's other deps.)
+          sudo apt-get install -y flatpak flatpak-builder ostree elfutils \
             pkg-config libcairo2-dev libgirepository1.0-dev libglib2.0-dev
 
       - name: Install runtimes
