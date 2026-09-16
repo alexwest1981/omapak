@@ -91,7 +91,12 @@ modules:
       - cp -r core ui omaamp skins themes main.py README.md ${FLATPAK_DEST}/omaamp/
       - install -Dm755 omaamp.sh ${FLATPAK_DEST}/bin/omaamp
       - install -Dm644 io.github.alexwest1981.OmaAmp.desktop ${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop
-      - install -Dm644 io.github.alexwest1981.OmaAmp.png ${FLATPAK_DEST}/share/icons/hicolor/128x128/apps/${FLATPAK_ID}.png
+      # Same 8-bit artwork in three sizes: the store master (512) plus the two
+      # desktop sizes. The icon this replaces was a single 128x128 image at 16
+      # bits per channel, which the catalog's image chain did not render.
+      - install -Dm644 io.github.alexwest1981.OmaAmp-512.png ${FLATPAK_DEST}/share/icons/hicolor/512x512/apps/${FLATPAK_ID}.png
+      - install -Dm644 io.github.alexwest1981.OmaAmp.png ${FLATPAK_DEST}/share/icons/hicolor/256x256/apps/${FLATPAK_ID}.png
+      - install -Dm644 io.github.alexwest1981.OmaAmp-128.png ${FLATPAK_DEST}/share/icons/hicolor/128x128/apps/${FLATPAK_ID}.png
       - install -Dm644 io.github.alexwest1981.OmaAmp.metainfo.xml ${FLATPAK_DEST}/share/metainfo/${FLATPAK_ID}.metainfo.xml
     sources:
       - type: git
@@ -102,6 +107,10 @@ modules:
       - type: file
         path: io.github.alexwest1981.OmaAmp.desktop
       - type: file
+        path: io.github.alexwest1981.OmaAmp-512.png
+      - type: file
         path: io.github.alexwest1981.OmaAmp.png
+      - type: file
+        path: io.github.alexwest1981.OmaAmp-128.png
       - type: file
         path: io.github.alexwest1981.OmaAmp.metainfo.xml
