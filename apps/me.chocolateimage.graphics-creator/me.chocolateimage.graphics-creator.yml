@@ -30,5 +30,5 @@ modules:
       - type: archive
         # git tag+commit tripped a flatpak-builder 1.4.11 edge even with
         # matching shas; archive-by-commit is deterministic
-        url: https://github.com/chocolateimage/graphics-creator/archive/4f3d151a4422c2d9a76f3ed2c197ecffd99269c7.tar.gz
-        sha256: d5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed
+        url: https://github.com/chocolateimage/graphics-creator/archive/bb13999325a4d9fa73c53a4c6091cc9ac019ccaa.tar.gz
+        sha256: 28a57c955f7eccb80e2c89ef25f76bd46f5dd2f89f7db4c41a3e6bc2ea4483cf
