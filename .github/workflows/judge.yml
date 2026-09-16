@@ -32,11 +32,21 @@ jobs:
           # phase runs `appstreamcli compose`, a separate addon package
           # on noble (without it every build dies at export with
           # "appstreamcli compose failed: Child process exited with code 4").
-          sudo apt-get install -y flatpak pipx libarchive-tools appstream-compose \
+          sudo apt-get install -y flatpak pipx libarchive-tools appstream-compose appstream \
             pkg-config libcairo2-dev libgirepository1.0-dev libglib2.0-dev
           # Not on PyPI under this name; install from the flathub git repo.
           pipx install git+https://github.com/flathub/flatpak-builder-lint.git
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      # Fail in seconds if the compose addon is missing, not 15 minutes
+      # into a build at export. (`sudo appstreamcli install
+      # org.freedesktop.appstream.compose` — the error's own hint — needs
+      # PackageKit, which the runners don't run; the apt package above
+      # ships the same /usr/libexec/appstreamcli-compose binary.)
+      - name: Verify AppStream Compose
+        run: |
+          test -x /usr/libexec/appstreamcli-compose
+          appstreamcli compose --help >/dev/null
 
       # noble's flatpak-builder 1.4.2 can't expand bare-string source
       # includes and garbles version-pinned sdk-extensions — both standard
