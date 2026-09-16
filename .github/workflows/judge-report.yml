@@ -86,8 +86,14 @@ jobs:
       # The old push-only `report` job in judge.yml did this; it now lives
       # here so every accepted app still carries its public report in-repo
       # without a "skipping" job on every PR check list.
+      # continue-on-error: main's branch protection rejects direct pushes
+      # ("changes must be made through a pull request") — until a ruleset
+      # bypass allows this workflow, the commit builds and is then
+      # declined upstream. Everything the site needs (R2 reports, PR
+      # comments) already happened before this step.
       - name: Commit reports into apps/ (main pushes)
         if: github.event.workflow_run.event == 'push'
+        continue-on-error: true
         run: |
           for app in apps/*/; do
             name=$(basename "$app")
