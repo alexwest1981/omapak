@@ -27,7 +27,8 @@ modules:
     config-opts:
       - -DUPDATE_CHECK=OFF
     sources:
-      - type: git
-        url: https://github.com/chocolateimage/graphics-creator.git
-        tag: v0.4.0
-        commit: 4f3d151a4422c2d9a76f3ed2c197ecffd99269c7
+      - type: archive
+        # git tag+commit tripped a flatpak-builder 1.4.11 edge even with
+        # matching shas; archive-by-commit is deterministic
+        url: https://github.com/chocolateimage/graphics-creator/archive/4f3d151a4422c2d9a76f3ed2c197ecffd99269c7.tar.gz
+        sha256: d5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed
