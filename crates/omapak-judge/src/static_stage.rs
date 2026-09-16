@@ -32,10 +32,11 @@ pub fn run(app_dir: &Path, source_dir: Option<&Path>) -> Result<StaticReport> {
         let unpinned: Vec<String> = m
             .modules
             .iter()
-            .flat_map(|modu| modu.sources.iter().filter_map(|s| {
-                (s.url.is_some() && s.pinned.is_none())
-                    .then(|| modu.name.clone())
-            }))
+            .flat_map(|modu| {
+                modu.sources.iter().filter_map(|s| {
+                    (s.url.is_some() && s.pinned.is_none()).then(|| modu.name.clone())
+                })
+            })
             .collect();
         if !unpinned.is_empty() {
             report.advisories.push(StaticAdvisory {
@@ -68,8 +69,7 @@ fn find_appstream(app_dir: &Path) -> Option<std::path::PathBuf> {
         .flatten()
         .find(|e| {
             let n = e.file_name().to_string_lossy();
-            e.path().is_file()
-                && (n.ends_with(".metainfo.xml") || n.ends_with(".appdata.xml"))
+            e.path().is_file() && (n.ends_with(".metainfo.xml") || n.ends_with(".appdata.xml"))
         })
         .map(|e| e.path().to_path_buf())
 }
@@ -82,16 +82,32 @@ fn lint_manifest(path: &Path) -> LinterRun {
 }
 
 fn lint_appstream(path: &Path) -> LinterRun {
-    let metainfo = run_linter(
-        "flatpak-builder-lint",
-        &["flatpakmetainfo".to_string(), path.to_string_lossy().into_owned()],
-    );
-    if metainfo.status != LinterStatus::NotFound {
-        return metainfo;
+    // flatpak-builder-lint 3.0.0 (what the workflow installs from git)
+    // renamed this subcommand from `flatpakmetainfo`; older installs only
+    // know the old name. An unknown subcommand surfaces as an argparse
+    // "invalid choice" failure, not as NotFound — so treat that as "try
+    // the other name" rather than a lint result.
+    for subcommand in ["appstream", "flatpakmetainfo"] {
+        let run = run_linter(
+            "flatpak-builder-lint",
+            &[subcommand.to_string(), path.to_string_lossy().into_owned()],
+        );
+        let invalid_subcommand = run
+            .findings
+            .iter()
+            .any(|f| f.contains("invalid choice") && f.contains(subcommand));
+        if run.status == LinterStatus::NotFound || invalid_subcommand {
+            continue;
+        }
+        return run;
     }
     run_linter(
         "appstreamcli",
-        &["validate".to_string(), "--no-net".to_string(), path.to_string_lossy().into_owned()],
+        &[
+            "validate".to_string(),
+            "--no-net".to_string(),
+            path.to_string_lossy().into_owned(),
+        ],
     )
 }
 
