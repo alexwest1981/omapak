@@ -96,7 +96,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/alexwest1981/OmaAmp
-        commit: 12aa4c8df3c7bb10f0730c0cf84f193f577362b8
+        commit: 7d630f8543e8226cb6e291fdd548fca5f08056c1
       - type: file
         path: omaamp.sh
       - type: file
