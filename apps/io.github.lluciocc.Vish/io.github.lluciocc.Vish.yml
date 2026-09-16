@@ -30,3 +30,8 @@ modules:
       - type: git
         url: https://github.com/Lluciocc/Vish.git
         tag: v1.1.4
+        # Anchored: the repo also cuts suffixed tags like v1.1.1.fix
+        x-checker-data:
+          type: git
+          tag-pattern: ^v\d+(\.\d+)+$
+          is-main-source: true

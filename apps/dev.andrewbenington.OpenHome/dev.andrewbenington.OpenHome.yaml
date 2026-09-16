@@ -17,13 +17,24 @@ modules:
     buildsystem: simple
     sources:
       - type: file
-        url: https://github.com/andrewbenington/OpenHome/releases/download/v1.4.4/OpenHome_1.4.4_arm64.deb 
+        url: https://github.com/andrewbenington/OpenHome/releases/download/v1.4.4/OpenHome_1.4.4_arm64.deb
         sha256: 202a36152be5d0900255e0575a67d79a13bcbb84c6675e1491b53e2b099237f5
         only-arches: [aarch64]
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/andrewbenington/OpenHome/releases/latest
+          version-query: .tag_name | sub("^v"; "")
+          url-query: '"https://github.com/andrewbenington/OpenHome/releases/download/v" + $version + "/OpenHome_" + $version + "_arm64.deb"'
       - type: file
         url: https://github.com/andrewbenington/OpenHome/releases/download/v1.4.4/OpenHome_1.4.4_amd64.deb
         sha256: 00f638a84d6510a55103c788a0b73a0cf6986e42fa09104f3691f6aa01a38488
         only-arches: [x86_64]
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/andrewbenington/OpenHome/releases/latest
+          version-query: .tag_name | sub("^v"; "")
+          url-query: '"https://github.com/andrewbenington/OpenHome/releases/download/v" + $version + "/OpenHome_" + $version + "_amd64.deb"'
+          is-main-source: true
     build-commands:
       - ar -x *.deb
       - tar -xf data.tar.gz
