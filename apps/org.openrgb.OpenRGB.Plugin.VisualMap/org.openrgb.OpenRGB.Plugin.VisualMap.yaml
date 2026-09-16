@@ -6,7 +6,7 @@ separate-locales: false
 
 runtime: org.openrgb.OpenRGB
 runtime-version: 'stable'
-sdk: org.kde.Sdk//5.15-23.08
+sdk: org.kde.Sdk//5.15-25.08
 
 build-options:
   prefix: /app/lib/openrgb/plugins/VisualMap
