@@ -94,7 +94,7 @@ for m in $paths; do
     # A manifest may pin its own SDK with a branch (extension-style
     # `sdk: org.kde.Sdk//5.15-25.08`); install it verbatim — the derived
     # Platform→Sdk ref above does not cover that shape.
-    psdk=$(grep -m1 -E '^[[:space:]]*"?sdk"?:' "$m" | cut -d: -f2- | tr -d '"' | tr -d "'" | sed 's/[[:space:]#].*//')
+    psdk=$(grep -m1 -E '^[[:space:]]*"?sdk"?:' "$m" | cut -d: -f2- | tr -d '"' | tr -d "'" | sed 's/^[[:space:]]*//; s/[[:space:]#].*$//')
     case "$psdk" in *//*) install_retry "$psdk" ;; esac
     # Extensions are versioned alongside the SDK; flatpak-builder fails
     # outright ("Requested extension ... not installed") without them.
