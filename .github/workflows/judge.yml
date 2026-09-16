@@ -1,13 +1,20 @@
 name: judge
 
 on:
+  # Negated patterns, not paths-ignore: paths + paths-ignore together make
+  # the filter MORE permissive (a publish.yml-only push triggered the judge
+  # on 2026-09-16), the opposite of the intent.
   pull_request:
-    paths: ["apps/**"]
-    paths-ignore: ["apps/**/report.json", "apps/**/report.md"]
+    paths:
+      - "apps/**"
+      - "!apps/**/report.json"
+      - "!apps/**/report.md"
   push:
     branches: [main]
-    paths: ["apps/**"]
-    paths-ignore: ["apps/**/report.json", "apps/**/report.md"]
+    paths:
+      - "apps/**"
+      - "!apps/**/report.json"
+      - "!apps/**/report.md"
 
 permissions:
   contents: read
