@@ -23,18 +23,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # PR app data as DATA only, never executed. The judge binary is built
-      # from main (trusted).
-      - name: Check out PR app data (data only)
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-          sparse-checkout: apps
-          path: pr-apps
-
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
 
+      # judge-partial carries the PR's apps/ alongside out/ and sources/
+      # (uploaded by the unprivileged static-build job). PR app data
+      # arrives as DATA only, never executed — the judge binary is built
+      # from this main checkout. Do NOT check out the fork's head here:
+      # actions/checkout refuses it from workflow_run contexts
+      # (pwn-request guard), and overriding that guard would put fork
+      # code in a secrets-bearing workflow.
       - uses: actions/download-artifact@v4
         with:
           name: judge-partial
@@ -55,7 +53,7 @@ jobs:
             # The judge exits nonzero when the recommendation isn't
             # "accept" — that's a report to deliver, not a CI failure.
             # Files under final/ are written before the exit.
-            cargo run -q -p omapak-judge -- "pr-apps/apps/$name" --partial "$partial" $source_dir --out "final/$name" \
+            cargo run -q -p omapak-judge -- "apps/$name" --partial "$partial" $source_dir --out "final/$name" \
               || echo "::warning::$name: judge recommended against accepting"
           done
 

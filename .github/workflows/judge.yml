@@ -27,7 +27,12 @@ jobs:
           sudo apt-get update
           # libcairo/girepository headers: PyGObject (a flatpak-builder-lint
           # dependency) compiles from source on noble.
-          sudo apt-get install -y flatpak pipx \
+          # libarchive-tools: flatpak-builder 1.4.11 extracts .zip sources
+          # by shelling out to bsdunzip. appstream-compose: its export
+          # phase runs `appstreamcli compose`, a separate addon package
+          # on noble (without it every build dies at export with
+          # "appstreamcli compose failed: Child process exited with code 4").
+          sudo apt-get install -y flatpak pipx libarchive-tools appstream-compose \
             pkg-config libcairo2-dev libgirepository1.0-dev libglib2.0-dev
           # Not on PyPI under this name; install from the flathub git repo.
           pipx install git+https://github.com/flathub/flatpak-builder-lint.git
@@ -122,6 +127,13 @@ jobs:
       # exactly when the partial report (with the reason) must reach
       # judge-report.yml. The default success() condition was silently
       # discarding it.
+      #
+      # apps/ rides along so judge-report.yml never has to check out the
+      # fork's head itself: actions/checkout refuses fork heads from
+      # workflow_run contexts (pwn-request guard), which killed every
+      # report for external PRs. This job runs unprivileged on the PR
+      # merge ref, so the app data reaches the privileged phase as an
+      # artifact — data only, same as out/ and sources/.
       - uses: actions/upload-artifact@v4
         if: "!cancelled()"
         with:
@@ -129,6 +141,7 @@ jobs:
           path: |
             out/
             sources/
+            apps/
           retention-days: 3
           if-no-files-found: warn
 
