@@ -13,12 +13,6 @@ runtime-version: '25.08'
 sdk: org.freedesktop.Sdk
 command: sonix
 separate-locales: false
-# The judge's runner has no `/usr/libexec/appstreamcli-compose` (the
-# `appstream-compose` package), so flatpak-builder's unconditional compose step
-# aborts the build; the judge's own workflow already patches that compose
-# detection out ("compose features unused by us", judge.yml). Same intent here
-# — see outcrop-labs/omapak#139. Drop this line once the runner installs it.
-appstream-compose: false
 
 finish-args:
   # egui/eframe window on Wayland, with an X11 fallback.
