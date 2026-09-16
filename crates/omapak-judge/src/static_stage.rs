@@ -48,14 +48,20 @@ pub fn run(app_dir: &Path, source_dir: Option<&Path>) -> Result<StaticReport> {
 
     report.manifest = manifest;
     report.metadata_present = app_dir.join("metadata.yml").is_file();
+    if let Some(dup) = find_duplicate(app_dir) {
+        report.advisories.push(StaticAdvisory {
+            kind: "duplicate".into(),
+            detail: format!("already packaged as {dup} — updates belong in apps/{dup}"),
+        });
+        report.duplicate_of = Some(dup);
+    }
     if !report.metadata_present {
         // Not gated (the build is the one gate), but without metadata.yml
         // the site catalog generator skips the app entirely — it merged
         // and published while being invisible on omapak.org.
         report.advisories.push(StaticAdvisory {
             kind: "metadata".into(),
-            detail: "no metadata.yml — the app will not appear in the site catalog"
-                .into(),
+            detail: "no metadata.yml — the app will not appear in the site catalog".into(),
         });
     }
     let appstream = find_appstream(app_dir);
@@ -82,6 +88,55 @@ fn find_appstream(app_dir: &Path) -> Option<std::path::PathBuf> {
             e.path().is_file() && (n.ends_with(".metainfo.xml") || n.ends_with(".appdata.xml"))
         })
         .map(|e| e.path().to_path_buf())
+}
+
+/// Canonical identity of an app's upstream project: the submitter's
+/// declared source_repo, normalized. Deliberately NOT derived from
+/// manifest source URLs — those include fonts, vendored tarballs and
+/// shared libraries that routinely repeat across unrelated apps.
+fn upstream_key(app_dir: &Path) -> Option<String> {
+    let meta = omapak_core::load_metadata(app_dir)?;
+    normalize_repo(&meta.source_repo)
+}
+
+fn normalize_repo(url: &str) -> Option<String> {
+    let u = url.trim().trim_end_matches('/');
+    let u = u.strip_suffix(".git").unwrap_or(u);
+    let u = if let Some(rest) = u.strip_prefix("git@github.com:") {
+        format!("github.com/{rest}")
+    } else if let Some(rest) = u.strip_prefix("https://") {
+        rest.to_string()
+    } else if let Some(rest) = u.strip_prefix("http://") {
+        rest.to_string()
+    } else {
+        u.to_string()
+    };
+    let mut parts = u.split('/');
+    let host = parts.next()?.to_lowercase();
+    if !matches!(
+        host.as_str(),
+        "github.com" | "gitlab.com" | "codeberg.org" | "git.sr.ht" | "sourceforge.net"
+    ) {
+        return Some(u.to_lowercase());
+    }
+    let owner = parts.next()?.to_lowercase();
+    let repo = parts.next()?.to_lowercase();
+    Some(format!("{host}/{owner}/{repo}"))
+}
+
+fn find_duplicate(app_dir: &Path) -> Option<String> {
+    let key = upstream_key(app_dir)?;
+    let siblings = app_dir.parent()?;
+    for entry in std::fs::read_dir(siblings).ok()?.flatten() {
+        let path = entry.path();
+        if !path.is_dir() || path == app_dir {
+            continue;
+        }
+        if upstream_key(&path).is_some_and(|other| other == key) {
+            return Some(entry.file_name().to_string_lossy().into_owned());
+        }
+    }
+    None
 }
 
 fn lint_manifest(path: &Path) -> LinterRun {
@@ -224,4 +279,61 @@ fn git_signals(dir: &Path) -> (Option<u64>, Option<String>) {
         .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
         .filter(|s| !s.is_empty());
     (count, last)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn normalizes_repo_identity_across_spellings() {
+        assert_eq!(
+            normalize_repo("https://github.com/Kesomannen/gale"),
+            normalize_repo("git@github.com:Kesomannen/gale.git")
+        );
+        assert_eq!(
+            normalize_repo("https://github.com/opengeos/GeoLibre/"),
+            normalize_repo("https://github.com/opengeos/geolibre")
+        );
+        // release/download URLs collapse to owner/repo
+        assert_eq!(
+            normalize_repo("https://github.com/debba/tabularis/releases/download/v0.24.0/x"),
+            normalize_repo("https://github.com/debba/tabularis")
+        );
+        // non-forge hosts compare as whole normalized strings
+        assert_eq!(
+            normalize_repo("https://Example.com/Project"),
+            normalize_repo("example.com/Project/")
+        );
+    }
+
+    #[test]
+    fn flags_duplicate_sibling_by_source_repo() {
+        let apps = tempfile::tempdir().unwrap();
+        let a = apps.path().join("io.example.Alpha");
+        let b = apps.path().join("com.example.AlphaClone");
+        for dir in [&a, &b] {
+            std::fs::create_dir_all(dir).unwrap();
+            std::fs::write(
+                dir.join("metadata.yml"),
+                "submitter: x\nsource_repo: https://github.com/Someone/alpha\nsummary: s\n",
+            )
+            .unwrap();
+        }
+        assert_eq!(
+            find_duplicate(&a).as_deref(),
+            Some("com.example.AlphaClone")
+        );
+        assert_eq!(find_duplicate(&b).as_deref(), Some("io.example.Alpha"));
+
+        // a different project is not a duplicate
+        let c = apps.path().join("io.example.Beta");
+        std::fs::create_dir_all(&c).unwrap();
+        std::fs::write(
+            c.join("metadata.yml"),
+            "submitter: x\nsource_repo: https://github.com/Someone/beta\nsummary: s\n",
+        )
+        .unwrap();
+        assert_eq!(find_duplicate(&c), None);
+    }
 }
