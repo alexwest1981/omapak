@@ -33,7 +33,11 @@ jobs:
       # actions/checkout refuses it from workflow_run contexts
       # (pwn-request guard), and overriding that guard would put fork
       # code in a secrets-bearing workflow.
+      # Stale pending-approval runs that complete without ever executing
+      # upload no artifact; downstream steps already tolerate an empty
+      # tree, so don't let the download kill the job.
       - uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: judge-partial
           run-id: ${{ github.event.workflow_run.id }}
@@ -85,7 +89,17 @@ jobs:
           script: |
             const fs = require('fs');
             const run = context.payload.workflow_run;
-            const prNumber = run.pull_requests[0]?.number;
+            let prNumber = run.pull_requests[0]?.number;
+            if (!prNumber) {
+              // Runs triggered by a maintainer's update-branch push carry
+              // an empty pull_requests array in this payload — find the
+              // PR by head sha instead of silently dropping the report.
+              const prs = await github.rest.pulls.list({
+                owner: context.repo.owner, repo: context.repo.repo,
+                state: 'open', per_page: 100,
+              });
+              prNumber = prs.data.find(p => p.head.sha === run.head_sha)?.number;
+            }
             if (!prNumber) { core.warning('no PR associated with this run'); return; }
             if (!fs.existsSync('final')) { core.info('no reports to post'); return; }
             const existing = await github.rest.issues.listComments({
