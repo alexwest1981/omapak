@@ -50,7 +50,7 @@ modules:
           is-main-source: true
       - type: file
         url: https://raw.githubusercontent.com/MCCORG/MCCompanion/main/flatpak/net.mccompanion.MCCompanion.metainfo.xml
-        sha256: 95a4393d0296a7cda57fdf354e49de47e2efed3ae7c85e7a39129b09e073746e
+        sha256: 1a2aa3520e1e057a40f582d9cf7604969570332ab3783b2ef418491516e5c272
         dest-filename: net.mccompanion.MCCompanion.metainfo.xml
         x-checker-data:
           type: json
