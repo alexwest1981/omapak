@@ -9,7 +9,7 @@ on:
     types: [completed]
 
 permissions:
-  contents: write
+  contents: read
   pull-requests: write
 
 jobs:
@@ -83,37 +83,10 @@ jobs:
               print(f"pushed {key}")
           EOF
 
-      # The old push-only `report` job in judge.yml did this; it now lives
-      # here so every accepted app still carries its public report in-repo
-      # without a "skipping" job on every PR check list.
-      # continue-on-error: main's branch protection rejects direct pushes
-      # ("changes must be made through a pull request") — until a ruleset
-      # bypass allows this workflow, the commit builds and is then
-      # declined upstream. Everything the site needs (R2 reports, PR
-      # comments) already happened before this step.
-      - name: Commit reports into apps/ (main pushes)
-        if: github.event.workflow_run.event == 'push'
-        continue-on-error: true
-        run: |
-          for app in apps/*/; do
-            name=$(basename "$app")
-            [ -f "final/$name/report.json" ] || continue
-            cp "final/$name/report.json" "$app/report.json"
-            cp "final/$name/report.md" "$app/report.md"
-          done
-          # Stage BEFORE the emptiness check: report files are new to the
-          # tree (the old report job never pushed), so plain `git diff`
-          # sees nothing and the commit never fires.
-          git add apps
-          if git diff --cached --quiet; then echo "no report changes"; exit 0; fi
-          git config user.name "omapak-judge"
-          git config user.email "actions@users.noreply.github.com"
-          # [skip ci] + judge.yml's negated path patterns: report-only
-          # commits must not retrigger the judge (report created_at
-          # changes every run — an unguarded commit loop would never
-          # converge).
-          git commit -m "judge: refresh reports [skip ci]"
-          git push
+      # No in-repo report commits: main's branch protection requires pull
+      # requests, and the site reads its reports live from R2 anyway
+      # (repo.omapak.org/reports/<id>.json) — fresher than any commit
+      # could be.
 
       - name: Post report comment
         uses: actions/github-script@v7
