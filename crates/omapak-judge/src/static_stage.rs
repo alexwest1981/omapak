@@ -48,6 +48,16 @@ pub fn run(app_dir: &Path, source_dir: Option<&Path>) -> Result<StaticReport> {
 
     report.manifest = manifest;
     report.metadata_present = app_dir.join("metadata.yml").is_file();
+    if !report.metadata_present {
+        // Not gated (the build is the one gate), but without metadata.yml
+        // the site catalog generator skips the app entirely — it merged
+        // and published while being invisible on omapak.org.
+        report.advisories.push(StaticAdvisory {
+            kind: "metadata".into(),
+            detail: "no metadata.yml — the app will not appear in the site catalog"
+                .into(),
+        });
+    }
     let appstream = find_appstream(app_dir);
     report.appstream_present = appstream.is_some();
 
