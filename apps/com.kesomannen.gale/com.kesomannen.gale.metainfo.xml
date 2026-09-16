@@ -55,6 +55,11 @@
         <control>pointing</control>
     </recommends>
     <releases>
+        <release version="1.22.3" date="2026-09-16">
+            <description>
+                <p>Updated to the latest upstream release</p>
+            </description>
+        </release>
         <release version="1.13.4" date="2026-05-05">
             <description>
                 <p>Added</p>

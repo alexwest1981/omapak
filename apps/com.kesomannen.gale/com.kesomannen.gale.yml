@@ -42,7 +42,15 @@ modules:
         path: com.kesomannen.gale.metainfo.xml
 
       - type: file
-        url: https://github.com/Kesomannen/gale/releases/download/1.13.4/Gale_1.13.4_amd64.AppImage
+        url: https://github.com/Kesomannen/gale/releases/download/1.22.3/Gale_1.22.3_amd64.AppImage
         dest-filename: gale.AppImage
-        sha256: 4f91b29160ca7042a78ae03949446802742561c938db1014be2234ba614701ff
+        sha256: e99ae9c077b5bd662d63ab280d8698d3cf87a72535e1325005eead8bce4ac569
         only-arches: [x86_64]
+        # Lets update-apps.yml (flatpak-external-data-checker) keep this
+        # pinned to the latest release automatically. Gale tags carry no
+        # v prefix and the asset embeds the version twice.
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/Kesomannen/gale/releases/latest
+          version-query: .tag_name
+          url-query: '"https://github.com/Kesomannen/gale/releases/download/" + $version + "/Gale_" + $version + "_amd64.AppImage"'
