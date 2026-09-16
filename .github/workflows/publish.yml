@@ -122,7 +122,20 @@ jobs:
           failed=""
           for app in apps/*/; do
             name=$(basename "$app")
-            manifest=$(find "$app" -maxdepth 1 \( -name '*.yml' -o -name '*.yaml' -o -name '*.json' \) ! -name 'metadata.yml' ! -name 'flathub.json' | head -1)
+            # Pick the app-id-named manifest like the judge does
+            # (omapak-core find_manifest): a plain find grabs whichever
+            # .json lands first, which fed flatpak-builder a
+            # python3-requirements.json fragment as OmaAmp's manifest
+            # ("Failed to init: sdk not specified", 2026-09-16).
+            manifest=""
+            for cand in "$name.yml" "$name.yaml" "$name.json"; do
+              [ -f "$app/$cand" ] && manifest="$app/$cand" && break
+            done
+            if [ -z "$manifest" ]; then
+              manifest=$(find "$app" -maxdepth 1 \( -name '*.yml' -o -name '*.yaml' -o -name '*.json' \) \
+                ! -name 'metadata.yml' ! -name 'flathub.json' \
+                ! -name '*-sources.json' ! -name '*-dependencies.json' | head -1)
+            fi
             [ -n "$manifest" ] || continue
             echo "::group::build $name"
             if flatpak-builder --force-clean --disable-rofiles-fuse --user \
