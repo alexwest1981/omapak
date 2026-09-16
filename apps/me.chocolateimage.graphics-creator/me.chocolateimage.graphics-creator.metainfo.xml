@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>me.chocolateimage.graphics-creator</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0</project_license>
+  <name>Graphics Creator</name>
+  <summary>Create titles and visual effects with keyframes</summary>
+  <description>
+    <p>
+      Graphics Creator is a Qt-based tool for building animated titles and
+      visual effects on a keyframe timeline: strokes, color and font
+      mixing, long shadows, waves, text animators and easing curves.
+    </p>
+    <p>
+      Projects render to animated graphics suitable for video overlays and
+      titles. Works alongside the author's other creative tools and ships
+      an AUR package for Arch users.
+    </p>
+  </description>
+  <developer id="me.chocolateimage">
+    <name>chocolateimage</name>
+  </developer>
+  <launchable type="desktop-id">me.chocolateimage.graphics-creator.desktop</launchable>
+  <url type="homepage">https://github.com/chocolateimage/graphics-creator</url>
+  <url type="bugtracker">https://github.com/chocolateimage/graphics-creator/issues</url>
+  <!-- Author-published screenshots from the project README -->
+  <screenshots>
+    <screenshot type="default">
+      <image>https://party.playlook.de/public/graphics-creator/mixing.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://party.playlook.de/public/graphics-creator/stroke.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://party.playlook.de/public/graphics-creator/long-shadow.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://party.playlook.de/public/graphics-creator/wave.gif</image>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.4.0" date="2026-09-16"/>
+  </releases>
+</component>
