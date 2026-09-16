@@ -3,7 +3,13 @@ name: publish
 on:
   push:
     branches: [main]
-    paths: ["apps/**", "omapak.flatpakrepo", "deploy/push-to-r2.py", "deploy/install-runtimes.sh"]
+    paths:
+      - "apps/**"
+      - "omapak.flatpakrepo"
+      - "deploy/push-to-r2.py"
+      - "deploy/pull-from-r2.py"
+      - "deploy/install-runtimes.sh"
+      - ".github/workflows/publish.yml"
   workflow_dispatch:
 
 permissions:
