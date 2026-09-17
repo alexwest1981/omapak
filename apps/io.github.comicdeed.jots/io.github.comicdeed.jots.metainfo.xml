@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.comicdeed.jots</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0</project_license>
+  <name>Jots</name>
+  <summary>Lightweight sticky notes for Linux with Markdown and AI-ready sync</summary>
+  <description>
+    <p>
+      Jots is a fast, lightweight sticky-notes app: Markdown editing with
+      live formatting and checklists, plain .md file storage you can back
+      up anywhere, and 12 pastel themes that hold up in light and dark
+      mode.
+    </p>
+    <p>
+      Notes can sync to any Git remote on a schedule or on demand, a
+      privacy mode hides sensitive text on screen, and an MCP server lets
+      compatible AI assistants create, search and manage notes directly.
+    </p>
+  </description>
+  <developer id="io.github.comicdeed">
+    <name>comicdeed</name>
+  </developer>
+  <launchable type="desktop-id">io.github.comicdeed.jots.desktop</launchable>
+  <url type="homepage">https://github.com/comicdeed/jots</url>
+  <url type="bugtracker">https://github.com/comicdeed/jots/issues</url>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/comicdeed/jots/HEAD/data/screenshots/jots-light.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/comicdeed/jots/HEAD/data/screenshots/preferences-light.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/comicdeed/jots/HEAD/data/screenshots/demo.gif</image>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="1.0" date="2026-09-16"/>
+  </releases>
+</component>

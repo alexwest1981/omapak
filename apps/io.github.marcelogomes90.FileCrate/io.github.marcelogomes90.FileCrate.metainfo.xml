@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.marcelogomes90.FileCrate</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0</project_license>
+  <name>File Crate</name>
+  <summary>Your archives, neatly packed</summary>
+  <description>
+    <p>
+      File Crate is a native archive viewer, extractor and creator built
+      for the COSMIC desktop. It opens ZIP, 7Z, RAR, TAR, TAR.GZ, TAR.XZ
+      and TAR.ZST archives, and creates ZIP, 7Z and TAR-family archives
+      with password protection for ZIP.
+    </p>
+  </description>
+  <developer id="io.github.marcelogomes90">
+    <name>marcelogomes90</name>
+  </developer>
+  <launchable type="desktop-id">io.github.marcelogomes90.FileCrate.desktop</launchable>
+  <url type="homepage">https://github.com/marcelogomes90/filecrate</url>
+  <url type="bugtracker">https://github.com/marcelogomes90/filecrate/issues</url>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.5" date="2026-09-16"/>
+  </releases>
+</component>

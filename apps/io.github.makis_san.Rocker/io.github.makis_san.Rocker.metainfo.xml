@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.makis_san.Rocker</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>Rocker</name>
+  <summary>Native desktop client for Docker containers</summary>
+  <description>
+    <p>
+      Rocker is a native desktop client for Docker containers, written in
+      pure Rust on egui: no webview, no bundled Chromium, no Electron.
+      Browse images, inspect and manage containers, and follow logs from
+      a lightweight native UI.
+    </p>
+  </description>
+  <developer id="io.github.makis_san">
+    <name>makis-san</name>
+  </developer>
+  <launchable type="desktop-id">io.github.makis_san.Rocker.desktop</launchable>
+  <url type="homepage">https://github.com/makis-san/rocker</url>
+  <url type="bugtracker">https://github.com/makis-san/rocker/issues</url>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.1" date="2026-09-16"/>
+  </releases>
+</component>

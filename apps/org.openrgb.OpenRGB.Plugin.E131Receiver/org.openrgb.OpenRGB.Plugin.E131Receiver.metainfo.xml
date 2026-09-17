@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.openrgb.OpenRGB.Plugin.E131Receiver</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>OpenRGB E1.31 Receiver Plugin</name>
+  <summary>Turn your OpenRGB setup into an E1.31 receiver</summary>
+  <description>
+    <p>
+      This OpenRGB plugin adds E1.31 integration, the industry-standard
+      lighting protocol supported by a wide variety of control software
+      and often used for sequenced light shows. Control all of your
+      OpenRGB-supported hardware from these programs by turning your
+      setup into an E1.31 receiver.
+    </p>
+  </description>
+  <developer id="org.openrgb">
+    <name>OpenRGB Developers</name>
+  </developer>
+  <url type="homepage">https://gitlab.com/OpenRGBDevelopers/OpenRGBE131ReceiverPlugin</url>
+  <url type="bugtracker">https://gitlab.com/OpenRGBDevelopers/OpenRGBE131ReceiverPlugin/-/issues</url>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.8" date="2026-09-16"/>
+  </releases>
+</component>

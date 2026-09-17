@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.dprietob.luma</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0</project_license>
+  <name>Luma</name>
+  <summary>Real-time multitrack audio mixer for Linux</summary>
+  <description>
+    <p>
+      Luma plays many audio tracks at once and lets you control each one
+      independently, with the look and feel of a professional studio
+      tool. A focused native app for sound technicians and broadcast
+      operators.
+    </p>
+  </description>
+  <developer id="io.github.dprietob">
+    <name>dprietob</name>
+  </developer>
+  <launchable type="desktop-id">io.github.dprietob.luma.desktop</launchable>
+  <url type="homepage">https://github.com/dprietob/luma</url>
+  <url type="bugtracker">https://github.com/dprietob/luma/issues</url>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/dprietob/luma/master/screenshots/main.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/dprietob/luma/master/docs/images/channels.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/dprietob/luma/master/docs/images/devices.png</image>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.1" date="2026-09-16"/>
+  </releases>
+</component>
