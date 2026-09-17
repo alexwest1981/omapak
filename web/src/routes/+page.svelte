@@ -136,7 +136,16 @@
         >
           <div class="flex items-start gap-3">
             {#if entry.icon}
-              <img src={entry.icon} alt="" loading="lazy" class="h-10 w-10 shrink-0 rounded-lg border border-line-subtle" />
+              <img
+                src={entry.icon}
+                alt=""
+                loading="lazy"
+                class="h-10 w-10 shrink-0 rounded-lg border border-line-subtle bg-raised object-contain"
+                onerror={(e) => {
+                  const el = e.currentTarget as HTMLImageElement;
+                  el.remove();
+                }}
+              />
             {/if}
             <div class="min-w-0 flex-1">
               <p class="truncate text-sm font-medium text-fg group-hover:text-accent">{entry.name || entry.app_id}</p>
@@ -188,7 +197,16 @@
             class="group flex items-center gap-3 rounded-sm border border-line-subtle bg-panel p-3 transition-colors hover:border-line hover:bg-hover"
           >
             {#if app.icon}
-              <img src={app.icon} alt="" loading="lazy" class="h-9 w-9 shrink-0 rounded-sm" />
+              <img
+                src={app.icon}
+                alt=""
+                loading="lazy"
+                class="h-9 w-9 shrink-0 rounded-sm object-contain"
+                onerror={(e) => {
+                  const el = e.currentTarget as HTMLImageElement;
+                  el.remove();
+                }}
+              />
             {/if}
             <span class="min-w-0">
               <span class="block truncate font-mono text-xs text-fg group-hover:text-accent"
