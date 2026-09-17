@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.brdweb.MaTui</id>
+  <name>MA-TUI</name>
+  <summary>Terminal controller and local speaker for Music Assistant</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <description>
+    <p>
+      MA-TUI is a terminal interface for Music Assistant: browse your library and
+      providers, control playback, volume, grouping and queues across your
+      networked speakers, and follow podcasts and audiobooks with resume points
+      and played-episode tracking. It also registers the machine it runs on as a
+      Sendspin speaker, so Music Assistant can send audio there directly, without
+      a separate companion player process.
+    </p>
+  </description>
+  <launchable type="desktop-id">io.github.brdweb.MaTui.desktop</launchable>
+  <icon type="stock">audio-speakers</icon>
+  <developer id="io.github.brdweb">
+    <name>brdweb</name>
+  </developer>
+  <url type="homepage">https://github.com/brdweb/ma-tui</url>
+  <url type="bugtracker">https://github.com/brdweb/ma-tui/issues</url>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Player, speakers and music browser in a terminal</caption>
+      <image>https://raw.githubusercontent.com/brdweb/ma-tui/main/docs/images/screenshot.png</image>
+    </screenshot>
+  </screenshots>
+  <categories>
+    <category>Audio</category>
+    <category>AudioVideo</category>
+  </categories>
+  <content_rating type="oars-1.1" />
+  <releases>
+    <release version="0.9.1" date="2026-09-16">
+      <description>
+        <p>Security update (rustls TLS fix) and README corrections.</p>
+      </description>
+    </release>
+  </releases>
+</component>
