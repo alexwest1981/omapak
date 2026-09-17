@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>app.talaria.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>Talaria</name>
+  <summary>A multitenant shell around Talaria instances</summary>
+  <description>
+    <p>Talaria Desktop is a launcher around hosted Talaria instances: add an
+    instance by URL, switch between them in a click, and each instance keeps
+    its own saved session.</p>
+  </description>
+  <launchable type="desktop-id">app.talaria.desktop.desktop</launchable>
+  <developer_name>Outcrop Labs</developer_name>
+  <update_contact>https://github.com/outcrop-labs/talaria</update_contact>
+  <url type="homepage">https://github.com/outcrop-labs/talaria</url>
+  <url type="bugtracker">https://github.com/outcrop-labs/talaria/issues</url>
+  <content_rating type="oars-1.1" />
+  <releases>
+    <release version="0.1.0" date="2026-09-16">
+      <description>
+        <p>Initial release.</p>
+      </description>
+    </release>
+  </releases>
+</component>

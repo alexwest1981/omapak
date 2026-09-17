@@ -1,0 +1,90 @@
+# Talaria Desktop — source build. Their own release flatpak stages a prebuilt
+# FHS tree (desktop/packaging/flatpak in the talaria repo); omapak builds
+# from the tag instead. GNOME's runtime is the one that carries WebKitGTK
+# 4.1, which the shell links against.
+app-id: app.talaria.desktop
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+command: talaria-desktop
+
+finish-args:
+  # The shell is a client: every instance it shows is remote. Nothing else
+  # about the host is shared — no home, no host filesystem.
+  - --share=network
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri # WebKit composites on the GPU wherever it can
+  - --talk-name=org.freedesktop.portal.* # browser-based OAuth, when it lands
+
+# No sdk-extensions, deliberately: rust-stable and node are date-versioned
+# fd extensions with no //50 branch, and the runner's flatpak 1.14 cannot
+# cross-mount them on GNOME's numbered runtimes. One module below installs
+# the toolchains into the build dir — never /app, where flatpak-builder's
+# eu-strip pass would corrupt rustc's DWARF 5 libs (libLLVM came out with
+# "no loadable segments" on the first try) — so nothing but the app itself
+# ships.
+modules:
+  - name: talaria
+    buildsystem: simple
+    build-options:
+      env:
+        # each build-command runs as its own shell, so the toolchain path
+        # must live here rather than in an `export` line
+        PATH: /run/build/talaria/toolchain/bin:/app/bin:/usr/bin
+        CARGO_HOME: /run/build/talaria/cargo
+        BUN_INSTALL_CACHE_DIR: /run/build/talaria/bun_cache
+    sources:
+      - type: git
+        url: https://github.com/outcrop-labs/talaria
+        tag: v0.1.0
+        commit: 3af432bea05560f8b64ec855fef098e480aa3848
+      # rust 1.97.1: desktop/src-tauri/rust-toolchain.toml pins it (edition
+      # 2024 + the tauri `unstable` multiwebview feature). Self-contained
+      # dist tarball; the wrapper dir is auto-stripped on extract.
+      - type: archive
+        dest: rust-dist
+        url: https://static.rust-lang.org/dist/rust-1.97.1-x86_64-unknown-linux-gnu.tar.xz
+        sha256: 88f28fa9af20594179f85d6df67078dfd6fa93e2f6da5e1e9b0ac4997988ca4f
+      # bun 1.4.0: their CI's pin (desktop-package.yml). zip extraction
+      # strips the bun-linux-x64/ wrapper and does not guarantee the
+      # exec bit, hence install -m755 below.
+      - type: archive
+        dest: bun-dist
+        url: https://github.com/oven-sh/bun/releases/download/bun-v1.4.0/bun-linux-x64.zip
+        sha256: 2d03fb5fb83ac8b567aca0a281b2ce1a1a19d488f56c2968d88c3f25e92fe452
+      - cargo-sources.json
+      - node-sources.json
+      - type: inline
+        dest: cargo
+        dest-filename: config.toml
+        contents: |
+          [source.vendored-sources]
+          directory = "cargo/vendor"
+
+          [source.crates-io]
+          replace-with = "vendored-sources"
+      - type: file
+        path: app.talaria.desktop.desktop
+      - type: file
+        path: app.talaria.desktop.metainfo.xml
+    build-commands:
+      - ./rust-dist/install.sh --prefix=/run/build/talaria/toolchain --without=rust-docs
+      - install -Dm755 bun-dist/bun /run/build/talaria/toolchain/bin/bun
+      # Frontend: vendored in node-sources.json as bun's offline install
+      # cache (bun_cache/<name>@<version>@@@1/), consumed via --offline.
+      - cd desktop && bun install --frozen-lockfile --offline
+      - cd desktop && bun run build:vite
+      # Shell: the tauri CLI is a wrapper; tauri-build + generate_context!
+      # embed ../dist at compile time, so a plain cargo build suffices.
+      - cd desktop/src-tauri && cargo build --release --offline --locked
+      - install -Dm755 desktop/src-tauri/target/release/talaria-desktop /app/bin/talaria-desktop
+      # Icons: flatpak looks these up by app id, not binary name.
+      - install -Dm644 desktop/src-tauri/icons/32x32.png /app/share/icons/hicolor/32x32/apps/app.talaria.desktop.png
+      - install -Dm644 desktop/src-tauri/icons/128x128.png /app/share/icons/hicolor/128x128/apps/app.talaria.desktop.png
+      - install -Dm644 "desktop/src-tauri/icons/128x128@2x.png" /app/share/icons/hicolor/256x256/apps/app.talaria.desktop.png
+      - install -Dm644 desktop/src-tauri/icons/icon.png /app/share/icons/hicolor/512x512/apps/app.talaria.desktop.png
+      - install -Dm644 app.talaria.desktop.desktop /app/share/applications/app.talaria.desktop.desktop
+      - install -Dm644 app.talaria.desktop.metainfo.xml /app/share/metainfo/app.talaria.desktop.metainfo.xml
+      - desktop-file-validate /app/share/applications/app.talaria.desktop.desktop
