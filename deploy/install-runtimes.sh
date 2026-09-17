@@ -44,7 +44,7 @@ sdk_exts() {
        }
        f && /^[[:space:]]*-/ {print; next}
        f {exit}' "$1" \
-    | sed -e 's/^[[:space:]]*-[[:space:]]*//' -e 's/["'\'']//g'
+    | sed -e 's/^[[:space:]]*-[[:space:]]*//' -e 's/["'\'']//g' -e 's/\r$//'
 }
 
 # Published branches for an extension, one per line. remote-ls is slow,
