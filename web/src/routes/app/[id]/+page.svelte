@@ -52,8 +52,17 @@
     <!-- Hero -->
     <section class="border-b border-line pb-8 pt-10">
       <div class="flex flex-wrap items-start gap-6">
-        <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl border border-line bg-raised shadow-[var(--theme-shadow-1)]">
-          <span class="font-mono text-2xl font-bold text-accent">{name[0]}</span>
+        <div class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line bg-raised shadow-[var(--theme-shadow-1)]">
+          {#if entry.icon}
+            <img
+              src={entry.icon}
+              alt=""
+              class="h-full w-full object-contain"
+              onerror={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+            />
+          {:else}
+            <span class="font-mono text-2xl font-bold text-accent">{name[0]}</span>
+          {/if}
         </div>
         <div class="min-w-0 flex-1">
           <div class="flex flex-wrap items-center gap-3">
