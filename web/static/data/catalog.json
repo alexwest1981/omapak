@@ -1,6 +1,714 @@
 {
-  "generated_at": "2026-09-11T00:16:45.113Z",
+  "generated_at": "2026-09-17T16:39:01.475Z",
   "entries": [
+    {
+      "app_id": "app.geolibre.GeoLibre",
+      "name": "GeoLibre Desktop",
+      "icon": "https://repo.omapak.org/icons/app.geolibre.GeoLibre.png",
+      "developer": "GeoLibre",
+      "description": [
+        "GeoLibre is a lightweight, cloud-native desktop GIS for visualizing and\n      analyzing geospatial data, built on MapLibre with deck.gl for 3D and\n      large point-cloud overlays.",
+        "It loads vector and raster files, web services, ArcGIS layers, MBTiles,\n      3D Tiles, and cloud-native formats such as GeoParquet, FlatGeobuf,\n      PMTiles, and COG, converting local data in the browser with DuckDB-WASM\n      Spatial. Projects are saved in an open .geolibre.json format, and the app\n      is extensible through a plugin ecosystem.",
+        "Highlights:",
+        [
+          "Add data from files, web services, databases, and cloud catalogs",
+          "Vector and raster processing tools, with an optional Python sidecar",
+          "A SQL workspace for DuckDB Spatial, and a docked Jupyter notebook",
+          "Offline basemap downloads, story maps, and multi-user collaboration"
+        ]
+      ],
+      "urls": {
+        "homepage": "https://geolibre.app/",
+        "bugtracker": "https://github.com/opengeos/GeoLibre/issues",
+        "vcs-browser": "https://github.com/opengeos/GeoLibre",
+        "details": "https://github.com/opengeos/GeoLibre/releases/tag/v1.5.0"
+      },
+      "bugtracker": "https://github.com/opengeos/GeoLibre/issues",
+      "help": null,
+      "screenshots": [
+        "https://files.opengeos.org/GeoLibre-demo.webp"
+      ],
+      "summary": "Lightweight, cloud-native GIS platform",
+      "submitter": "jon",
+      "source_repo": "https://github.com/opengeos/GeoLibre",
+      "license": "MIT",
+      "homepage": "https://geolibre.app/",
+      "tags": [
+        "utility"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "com.adibhanna.zennotes",
+      "name": "ZenNotes",
+      "icon": "https://repo.omapak.org/icons/com.adibhanna.zennotes.png",
+      "developer": "Adib Hanna",
+      "description": [
+        "ZenNotes is a keyboard-first Markdown notes app that keeps your notes as\n      ordinary Markdown files on disk — yours to own, sync, and version however\n      you like.",
+        "On top of the files you already own, it adds:",
+        [
+          "Vim-friendly editing with split and live-preview workflows",
+          "Wiki-links, tags, tasks, daily notes, and full-text search",
+          "Diagrams (Mermaid, TikZ), math (KaTeX), and syntax-highlighted code",
+          "CSV databases with Notion-style Table and Board views over plain .csv files",
+          "Archive, trash, quick capture, and a built-in command-line companion"
+        ]
+      ],
+      "urls": {
+        "homepage": "https://zennotes.org",
+        "bugtracker": "https://github.com/ZenNotes/zennotes/issues",
+        "vcs-browser": "https://github.com/ZenNotes/zennotes"
+      },
+      "bugtracker": "https://github.com/ZenNotes/zennotes/issues",
+      "help": null,
+      "screenshots": [
+        "https://zennotes.org/images/app.png"
+      ],
+      "summary": "Keyboard-first Markdown notes app",
+      "submitter": "jon",
+      "source_repo": "https://github.com/ZenNotes/zennotes",
+      "license": "MIT",
+      "homepage": "https://zennotes.org",
+      "tags": [
+        "utility"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "com.github.phase1geo.annotator",
+      "name": "Annotator",
+      "icon": "https://repo.omapak.org/icons/com.github.phase1geo.annotator.png",
+      "developer": "phase1geo",
+      "description": [
+        "Elementary-style image annotation and editing: add arrows, text,\n      shapes, blur, highlights and numbering to screenshots, then crop,\n      scale or export the result. Built around the idea that pointing at\n      the thing beats describing the thing."
+      ],
+      "urls": {
+        "homepage": "https://github.com/phase1geo/Annotator",
+        "bugtracker": "https://github.com/phase1geo/Annotator/issues"
+      },
+      "bugtracker": "https://github.com/phase1geo/Annotator/issues",
+      "help": null,
+      "screenshots": [
+        "https://raw.githubusercontent.com/phase1geo/Annotator/master/data/screenshots/screenshot-editor.png",
+        "https://raw.githubusercontent.com/phase1geo/Annotator/master/data/screenshots/screenshot-welcome.png"
+      ],
+      "summary": "Communicate with images better",
+      "submitter": "jon",
+      "source_repo": "https://github.com/phase1geo/Annotator",
+      "license": "GPL-3.0",
+      "homepage": "https://github.com/phase1geo/Annotator",
+      "tags": [
+        "graphics",
+        "utility"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "com.inulute.aigate",
+      "name": "AI Gate",
+      "icon": "https://repo.omapak.org/icons/com.inulute.aigate.png",
+      "developer": "inulute",
+      "description": [
+        "AI Gate brings all major AI assistants — ChatGPT, Claude, Gemini, Perplexity, Qwen, and Grok —\n      into one beautiful, unified desktop application. No more switching between browser tabs.",
+        "Key features:",
+        [
+          "Multi-panel workspace: view up to 3 AI tools side-by-side simultaneously",
+          "Global webview pool: switching layouts preserves all session state — no reloads, no flashing",
+          "Smart tab synchronization: synced or independent tabs per panel",
+          "Native Wayland support with automatic X11/Wayland detection",
+          "System tray integration: minimize to tray and restore instantly",
+          "Auto-updates via GitHub releases",
+          "Privacy first: no telemetry, no trackers"
+        ]
+      ],
+      "urls": {
+        "homepage": "https://aigate.inulute.com",
+        "bugtracker": "https://github.com/inulute/ai-gate/issues",
+        "vcs-browser": "https://github.com/inulute/ai-gate",
+        "donation": "https://support.inulute.com"
+      },
+      "bugtracker": "https://github.com/inulute/ai-gate/issues",
+      "help": null,
+      "screenshots": [
+        "https://raw.githubusercontent.com/inulute/ai-gate/main/screenshots/Screenshot1.png",
+        "https://raw.githubusercontent.com/inulute/ai-gate/main/screenshots/Screenshot2.png",
+        "https://raw.githubusercontent.com/inulute/ai-gate/main/screenshots/Screenshot3.png"
+      ],
+      "summary": "Access all your AI tools seamlessly in one unified desktop application",
+      "submitter": "jon",
+      "source_repo": "https://github.com/inulute/ai-gate",
+      "license": "GPL-3.0",
+      "homepage": "https://aigate.inulute.com",
+      "tags": [
+        "network",
+        "utility"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "com.kesomannen.gale",
+      "name": "Gale",
+      "icon": "https://repo.omapak.org/icons/com.kesomannen.gale.png",
+      "developer": "Kesomannen",
+      "description": [
+        "A lightweight and user-friendly app for installing and managing mods on the Thunderstore\n            platform.",
+        "Gale supports every game and mod loader found on thunderstore.io, including Lethal\n            Company, R.E.P.O., Hollow Knight Silksong and over 100 others."
+      ],
+      "urls": {
+        "bugtracker": "https://github.com/Kesomannen/gale/issues",
+        "homepage": "https://kesomannen.com/gale",
+        "donation": "https://ko-fi.com/kesomannen",
+        "faq": "https://github.com/Kesomannen/gale/wiki/FAQ",
+        "vcs-browser": "https://github.com/Kesomannen/gale"
+      },
+      "bugtracker": "https://github.com/Kesomannen/gale/issues",
+      "help": null,
+      "screenshots": [
+        "https://raw.githubusercontent.com/Kesomannen/gale/refs/heads/master/images/flathub/screenshot1.png",
+        "https://raw.githubusercontent.com/Kesomannen/gale/refs/heads/master/images/flathub/screenshot2.png",
+        "https://raw.githubusercontent.com/Kesomannen/gale/refs/heads/master/images/flathub/screenshot3.png"
+      ],
+      "summary": "Modern mod manager for Thunderstore",
+      "submitter": "jon",
+      "source_repo": "https://github.com/Kesomannen/gale",
+      "license": "GPL-3.0-only",
+      "homepage": "https://kesomannen.com/gale",
+      "tags": [
+        "game",
+        "utility"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "com.macrotrainer.MacroTrainer",
+      "name": "Macro Trainer",
+      "icon": "https://repo.omapak.org/icons/com.macrotrainer.MacroTrainer.png",
+      "developer": "Nick Hirras",
+      "description": [
+        "Macro Trainer is a privacy-first macro tracking application. Track your\n      daily nutrition and calories locally on your device — no subscriptions,\n      no cloud syncing, no ads. The Linux build is free.",
+        "Features:",
+        [
+          "Log meals against a large built-in food database, entirely offline",
+          "Daily macro and calorie dashboard",
+          "AI coaching that adjusts your plan as you go",
+          "Intermittent fasting timer",
+          "Body weight and progress tracking charts",
+          "Your data stays on your device"
+        ]
+      ],
+      "urls": {
+        "homepage": "https://macrotrainer.com",
+        "contact": "https://macrotrainer.com"
+      },
+      "bugtracker": null,
+      "help": null,
+      "screenshots": [
+        "https://macrotrainer.com/screenshots/linux/01-today-dashboard.png",
+        "https://macrotrainer.com/screenshots/linux/02-meal-logging.png",
+        "https://macrotrainer.com/screenshots/linux/03-workout-logging.png",
+        "https://macrotrainer.com/screenshots/linux/04-progress-charts.png",
+        "https://macrotrainer.com/screenshots/linux/05-coaching-hub.png",
+        "https://macrotrainer.com/screenshots/linux/06-coach-chat.png"
+      ],
+      "summary": "Privacy-first macro tracking",
+      "submitter": "jon",
+      "source_repo": "https://github.com/NickHirras/macrotrainer-releases",
+      "license": "LicenseRef-proprietary",
+      "homepage": "https://macrotrainer.com",
+      "tags": [
+        "utility",
+        "health"
+      ],
+      "source_access": "proprietary",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "com.redisviewer.RedisViewer",
+      "name": "Redis Viewer",
+      "icon": "https://repo.omapak.org/icons/com.redisviewer.RedisViewer.png",
+      "developer": "RedisViewer",
+      "description": [
+        "Redis Viewer is a local Redis desktop client for browsing large keyspaces,\n      inspecting Java serialized values, and analyzing SlowLog, BigKey, HotKey,\n      CPU, memory, and cache-hit signals.",
+        [
+          "Browse large keyspaces with SCAN and virtual scrolling",
+          "Inspect Java serialized, Base64, Hex, and binary values",
+          "Analyze SlowLog, BigKey, HotKey, and resource trends",
+          "Store connection passwords in the system keychain"
+        ]
+      ],
+      "urls": {
+        "homepage": "https://redisviewer.com/",
+        "help": "https://redisviewer.com/guide",
+        "faq": "https://redisviewer.com/",
+        "contact": "https://redisviewer.com/",
+        "bugtracker": "https://github.com/redisviewer/redisviewer/issues",
+        "details": "https://redisviewer.com/release-notes"
+      },
+      "bugtracker": "https://github.com/redisviewer/redisviewer/issues",
+      "help": null,
+      "screenshots": [
+        "https://redisviewer.com/static/screenshots/list.png",
+        "https://redisviewer.com/static/screenshots/slowlog.png",
+        "https://redisviewer.com/static/screenshots/bigkey.png",
+        "https://redisviewer.com/static/screenshots/hotkey.png"
+      ],
+      "summary": "Redis desktop client for large keyspaces and bottleneck analysis",
+      "submitter": "jon",
+      "source_repo": "https://github.com/redisviewer/redisviewer",
+      "license": "LicenseRef-proprietary=https://redisviewer.com",
+      "homepage": "https://redisviewer.com/",
+      "tags": [
+        "development",
+        "database",
+        "utility"
+      ],
+      "source_access": "proprietary",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "dev.andrewbenington.OpenHome",
+      "name": "OpenHome",
+      "icon": "https://repo.omapak.org/icons/dev.andrewbenington.OpenHome.png",
+      "developer": "Andrew Benington",
+      "description": [
+        "OpenHome is an open source tool for moving Pokémon between game save files, including\n      forwards and backwards through generations, without data loss.",
+        "The Flatpak version may run into extra issues due to the nature\n      of Flatpak sandboxing. When submitting bugs, please specify you are using the Flatpak version."
+      ],
+      "urls": {
+        "homepage": "https://andrewbenington.github.io/OpenHome/",
+        "bugtracker": "https://github.com/andrewbenington/OpenHome/issues"
+      },
+      "bugtracker": "https://github.com/andrewbenington/OpenHome/issues",
+      "help": null,
+      "screenshots": [
+        "https://raw.githubusercontent.com/andrewbenington/OpenHome/refs/heads/main/docs/screenshots/linux/boxes.png",
+        "https://raw.githubusercontent.com/andrewbenington/OpenHome/refs/heads/main/docs/screenshots/linux/saves.png"
+      ],
+      "summary": "An open source tool for moving Pokémon between game save files",
+      "submitter": "jon",
+      "source_repo": "https://github.com/andrewbenington/OpenHome",
+      "license": "MIT",
+      "homepage": "https://andrewbenington.github.io/OpenHome/",
+      "tags": [
+        "network",
+        "utility"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "io.github.alexwest1981.NovaCut",
+      "name": "NovaCut",
+      "icon": "https://repo.omapak.org/icons/io.github.alexwest1981.NovaCut.png",
+      "developer": "Alex Weström",
+      "description": [
+        "NovaCut is a video editor for Linux desktops: the fast, touch-friendly\n      workflow of a mobile editor, with a real multi-track timeline underneath.\n      It runs natively on Wayland and keeps the preview live while you cut.",
+        "What it does:",
+        [
+          "Magnetic timeline with separate lanes for main video, overlays, text, adjustment layers and audio",
+          "Trim handles, razor cut (S or Ctrl+B), snapping (N) and timeline zoom",
+          "Live preview canvas with 16:9, 9:16, 1:1 and 4:5 project presets",
+          "Text and typography layers with fonts, colours, outlines and shadows",
+          "Speed ramping, audio waveforms, and a canvas-based smart cutout that needs no model or network access",
+          "50 transitions and 50 effects, including cinema LUTs",
+          "A plugin marketplace with declarative manifest.json filters, four presets included (Cyberpunk Neon, 80s Retro VHS, Cinematic Golden Hour, Film Noir) and an in-app filter creator",
+          "Hardware-accelerated decode for preview (VA-API)"
+        ],
+        "Probing, preview and export use the ffmpeg and ffprobe that ship with the\n      freedesktop runtime, and the export dialog offers what that build\n      supports. Speech-to-text captions are not available in this package: they\n      need a whisper.cpp build and a Whisper model, and neither is in the\n      project repository yet.",
+        "Projects, downloaded plugins and fonts are kept in the application's own\n      data directory. The app reaches the network only for marketplace plugins\n      and stock media the user asks for, and it sends no telemetry."
+      ],
+      "urls": {
+        "homepage": "https://github.com/alexwest1981/NovaCut",
+        "bugtracker": "https://github.com/alexwest1981/NovaCut/issues",
+        "vcs-browser": "https://github.com/alexwest1981/NovaCut"
+      },
+      "bugtracker": "https://github.com/alexwest1981/NovaCut/issues",
+      "help": null,
+      "screenshots": [],
+      "summary": "CapCut-style video editor with a multi-track timeline and plugin marketplace",
+      "submitter": "alexwest1981",
+      "source_repo": "https://github.com/alexwest1981/NovaCut",
+      "license": "MIT",
+      "homepage": "https://github.com/alexwest1981/NovaCut",
+      "tags": [
+        "video",
+        "utility"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "io.github.alexwest1981.OmaAmp",
+      "name": "OmaAmp",
+      "icon": "https://repo.omapak.org/icons/io.github.alexwest1981.OmaAmp.png",
+      "developer": "Alex Weström",
+      "description": [
+        "OmaAmp is a Winamp 2.91-style audio player for Linux, written in Python with\n      Qt. It plays local files with a real DSP chain behind it — a 10-band IIR\n      biquad equalizer, a preamp with a soft limiter, and an FFT spectrum analyzer\n      driven by the audio actually playing rather than by a decoration.",
+        "What it does:",
+        [
+          "The classic modular layout: main window with LED clock, spectrum analyzer, marquee, specs readout, volume, balance and seek",
+          "10-band graphic equalizer (60 Hz to 16 kHz) with presets, preamp and a live frequency-response curve",
+          "Six visualizer modes — spectrum analyzer, laser oscilloscope, dual VU meters, warp starfield, matrix rain and a polar frequency ring",
+          "Playlist editor with drag and drop, search, M3U/PLS import and export, and state restored on restart",
+          "Theme engine with bundled themes, an in-app theme studio, and .wsz skin support",
+          "Internet radio from a searchable directory and direct stream URLs, plus YouTube audio streams",
+          "MP3, FLAC, WAV, OGG and AAC playback",
+          "English and Swedish interface"
+        ],
+        "Playing local files needs no network at all. Radio, YouTube streams and the\n      optional theme-sharing feature do, and they are the only things that use it: the\n      radio directory (radio-browser.info), whatever stream URL you paste, and — only if\n      you paste a GitHub token of your own — the GitHub API, to publish a shared theme as\n      a gist in your account. There is no telemetry, no account of the app's own, and no\n      background update check."
+      ],
+      "urls": {
+        "homepage": "https://github.com/alexwest1981/OmaAmp",
+        "bugtracker": "https://github.com/alexwest1981/OmaAmp/issues",
+        "vcs-browser": "https://github.com/alexwest1981/OmaAmp"
+      },
+      "bugtracker": "https://github.com/alexwest1981/OmaAmp/issues",
+      "help": null,
+      "screenshots": [
+        "https://raw.githubusercontent.com/alexwest1981/OmaAmp/12aa4c8df3c7bb10f0730c0cf84f193f577362b8/screenshots/preview1.png",
+        "https://raw.githubusercontent.com/alexwest1981/OmaAmp/12aa4c8df3c7bb10f0730c0cf84f193f577362b8/screenshots/preview2.png",
+        "https://raw.githubusercontent.com/alexwest1981/OmaAmp/12aa4c8df3c7bb10f0730c0cf84f193f577362b8/screenshots/preview3.png"
+      ],
+      "summary": "Winamp-style audio player with themes, equalizer and visualizers",
+      "submitter": "alexwest1981",
+      "source_repo": "https://github.com/alexwest1981/OmaAmp",
+      "license": "MIT",
+      "homepage": "https://github.com/alexwest1981/OmaAmp",
+      "tags": [
+        "audio",
+        "music",
+        "player"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "io.github.alexwest1981.OmarchyTube",
+      "name": "OmarchyTube",
+      "icon": "https://repo.omapak.org/icons/io.github.alexwest1981.OmarchyTube.png",
+      "developer": "Alex Weström",
+      "description": [
+        "OmarchyTube is a standalone YouTube window for Omarchy and Hyprland — the\n      ReVanced/SmartTube idea without a browser around it. It opens full-screen and\n      stays out of the way, so the video gets the whole display instead of a tab.",
+        "What it does:",
+        [
+          "TV (leanback) mode for arrow-key and remote navigation, and a desktop mode you toggle with F2",
+          "Sign-in through Google's OAuth device flow: a QR code is shown and the session is stored locally — no password is typed into the app",
+          "Ad blocking at the request level, plus cosmetic filtering of sponsored shelves and banners, and skipping of pre-roll and mid-roll ads",
+          "SponsorBlock segment skipping, with the segments marked on the progress bar and an on-screen \"unskip\" button",
+          "Return YouTube Dislike counts on the player",
+          "Hardware-accelerated video decode (VA-API)"
+        ],
+        "The app talks to three services and no others: YouTube, the SponsorBlock API and\n      the Return YouTube Dislike API. It sends no telemetry and has no analytics. It is an\n      independent client and is not affiliated with, endorsed by, or built by YouTube."
+      ],
+      "urls": {
+        "homepage": "https://github.com/alexwest1981/OmarchyTube",
+        "bugtracker": "https://github.com/alexwest1981/OmarchyTube/issues",
+        "vcs-browser": "https://github.com/alexwest1981/OmarchyTube"
+      },
+      "bugtracker": "https://github.com/alexwest1981/OmarchyTube/issues",
+      "help": null,
+      "screenshots": [],
+      "summary": "Full-screen YouTube client with ad blocking and SponsorBlock",
+      "submitter": "alexwest1981",
+      "source_repo": "https://github.com/alexwest1981/OmarchyTube",
+      "license": "MIT",
+      "homepage": "https://github.com/alexwest1981/OmarchyTube",
+      "tags": [
+        "video",
+        "youtube",
+        "media"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "io.github.alexwest1981.OmaScribe",
+      "name": "OmaScribe",
+      "icon": "https://repo.omapak.org/icons/io.github.alexwest1981.OmaScribe.png",
+      "developer": "Alex Weström",
+      "description": [
+        "OmaScribe is a word processor for Linux that writes like a document editor and\n      reads like a writing tool: rich text with styles, tables, images and charts, a\n      vault of templates, and an AI review that works on the text you have selected\n      rather than on the whole document.",
+        "What it does:",
+        [
+          "Rich text editing with styles, tables, charts, images and print layout",
+          "DOCX, PDF, Markdown, plain text and HTML import and export",
+          "AI review and inline suggestions through any OpenAI-compatible endpoint the user configures",
+          "A vault of templates and reusable documents, plus a research panel",
+          "Document statistics, a code analyser and a ghostwriter mode",
+          "Google Fonts browser with download into the document",
+          "Swedish and English interface",
+          "Dictation, when the optional faster-whisper dependency is available"
+        ],
+        "The AI features only ever talk to the endpoint you configure yourself — there is\n      no built-in service, no account, and no telemetry. Local models work too: point it\n      at a llama.cpp, vLLM or Ollama-compatible URL on your own machine."
+      ],
+      "urls": {
+        "homepage": "https://github.com/alexwest1981/OmaScribe",
+        "bugtracker": "https://github.com/alexwest1981/OmaScribe/issues",
+        "vcs-browser": "https://github.com/alexwest1981/OmaScribe"
+      },
+      "bugtracker": "https://github.com/alexwest1981/OmaScribe/issues",
+      "help": null,
+      "screenshots": [
+        "https://raw.githubusercontent.com/alexwest1981/OmaScribe/b0360330c5873c11c4fa42e97f0d3a8e8fc19800/screenshot.png"
+      ],
+      "summary": "Rich text editor with AI review, vault and document export",
+      "submitter": "alexwest1981",
+      "source_repo": "https://github.com/alexwest1981/OmaScribe",
+      "license": "MIT",
+      "homepage": "https://github.com/alexwest1981/OmaScribe",
+      "tags": [
+        "office",
+        "editor",
+        "writing"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "io.github.alexwest1981.sonix",
+      "name": "Sonix Studio",
+      "icon": "https://repo.omapak.org/icons/io.github.alexwest1981.sonix.png",
+      "developer": "Alex Weström",
+      "description": [
+        "Sonix Studio is a digital audio workstation for Linux, written in Rust with an\n      egui interface. It edits audio directly on the timeline, the way FL Studio does,\n      with magnetic loop snapping — and keeps the engine's word: everything the\n      interface advertises is wired to real DSP, including the parts that are still\n      rough.",
+        "Features include:",
+        [
+          "Timeline arranger with direct clip editing, slicing and magnetic loop snapping",
+          "Real-time cpal/ALSA audio engine, with the system's PipeWire working through its ALSA layer",
+          "16-step channel rack, piano roll, and touch instruments",
+          "Analog Alchemy synthesizer, drum synthesis, per-voice filter and envelope",
+          "Multichannel effects mixer with per-track sends, automation lanes and VCA groups",
+          "Vocal Studio with microphone recording, a sampler and a pitch-preserving time-stretch",
+          "Stem separation (DSP path), a stem focus editor and Suno stem-pack import",
+          "Plugin host: catalogues everything, and loads CLAP, VST3 and VST2 effects with delay compensation",
+          "Optional AI music assistant speaking to any OpenAI-compatible endpoint",
+          "Export to WAV/MP3/FLAC with the master mix or per-track stems"
+        ],
+        "Two things are deliberately opt-in rather than shipped: neural stem separation\n      (needs a build with the neural feature plus a user-supplied HTDemucs model — the\n      DSP separator is what runs without one) and LV2 plugin loading, which has no host\n      yet. The project says so itself in its README rather than in a footnote."
+      ],
+      "urls": {
+        "homepage": "https://github.com/alexwest1981/sonix",
+        "bugtracker": "https://github.com/alexwest1981/sonix/issues",
+        "vcs-browser": "https://github.com/alexwest1981/sonix",
+        "help": "https://github.com/alexwest1981/sonix/blob/master/MANUAL.md",
+        "details": "https://github.com/alexwest1981/sonix/releases/tag/v0.9.0"
+      },
+      "bugtracker": "https://github.com/alexwest1981/sonix/issues",
+      "help": null,
+      "screenshots": [
+        "https://raw.githubusercontent.com/alexwest1981/sonix/v0.9.0/screenshots/01_tidslinje_arranger.png",
+        "https://raw.githubusercontent.com/alexwest1981/sonix/v0.9.0/screenshots/06_effects_mixer.png",
+        "https://raw.githubusercontent.com/alexwest1981/sonix/v0.9.0/screenshots/03_piano_roll.png",
+        "https://raw.githubusercontent.com/alexwest1981/sonix/v0.9.0/screenshots/08_alchemy_synth.png",
+        "https://raw.githubusercontent.com/alexwest1981/sonix/v0.9.0/screenshots/11_stem_separator.png",
+        "https://raw.githubusercontent.com/alexwest1981/sonix/v0.9.0/screenshots/12_plugin_manager.png"
+      ],
+      "summary": "Native Linux digital audio workstation",
+      "submitter": "alexwest1981",
+      "source_repo": "https://github.com/alexwest1981/sonix",
+      "license": "MIT OR Apache-2.0",
+      "homepage": "https://github.com/alexwest1981/sonix",
+      "tags": [
+        "audio",
+        "music",
+        "daw"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "io.github.alinur1.LocalPDF_Studio",
+      "name": "LocalPDF Studio",
+      "icon": "https://repo.omapak.org/icons/io.github.alinur1.LocalPDF_Studio.png",
+      "developer": "Alinur1",
+      "description": [
+        "LocalPDF Studio is a complete offline PDF toolkit: no internet, no\n      uploads, no compromise. Merge, split, rotate, compress and convert\n      documents, all processed locally on your machine."
+      ],
+      "urls": {
+        "homepage": "https://github.com/Alinur1/LocalPDF_Studio",
+        "bugtracker": "https://github.com/Alinur1/LocalPDF_Studio/issues"
+      },
+      "bugtracker": "https://github.com/Alinur1/LocalPDF_Studio/issues",
+      "help": null,
+      "screenshots": [
+        "https://raw.githubusercontent.com/Alinur1/LocalPDF_Studio/main/Screenshots/LPS2.png"
+      ],
+      "summary": "Your complete offline PDF toolkit",
+      "submitter": "jon",
+      "source_repo": "https://github.com/Alinur1/LocalPDF_Studio",
+      "license": "AGPL-3.0",
+      "homepage": "https://github.com/Alinur1/LocalPDF_Studio",
+      "tags": [
+        "office",
+        "utility"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "io.github.comicdeed.jots",
+      "name": "Jots",
+      "icon": "https://repo.omapak.org/icons/io.github.comicdeed.jots.png",
+      "developer": "comicdeed",
+      "description": [
+        "Jots is a fast, lightweight sticky-notes app: Markdown editing with\n      live formatting and checklists, plain .md file storage you can back\n      up anywhere, and 12 pastel themes that hold up in light and dark\n      mode.",
+        "Notes can sync to any Git remote on a schedule or on demand, a\n      privacy mode hides sensitive text on screen, and an MCP server lets\n      compatible AI assistants create, search and manage notes directly."
+      ],
+      "urls": {
+        "homepage": "https://github.com/comicdeed/jots",
+        "bugtracker": "https://github.com/comicdeed/jots/issues"
+      },
+      "bugtracker": "https://github.com/comicdeed/jots/issues",
+      "help": null,
+      "screenshots": [
+        "https://raw.githubusercontent.com/comicdeed/jots/HEAD/data/screenshots/jots-light.png",
+        "https://raw.githubusercontent.com/comicdeed/jots/HEAD/data/screenshots/preferences-light.png",
+        "https://raw.githubusercontent.com/comicdeed/jots/HEAD/data/screenshots/demo.gif"
+      ],
+      "summary": "Lightweight sticky notes for Linux with Markdown and AI-ready sync",
+      "submitter": "jon",
+      "source_repo": "https://github.com/comicdeed/jots",
+      "license": "GPL-3.0",
+      "homepage": "https://github.com/comicdeed/jots",
+      "tags": [
+        "utility",
+        "notes"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "io.github.debba.tabularis",
+      "name": "Tabularis",
+      "icon": "https://repo.omapak.org/icons/io.github.debba.tabularis.png",
+      "developer": null,
+      "description": [
+        "Tabularis is a modern, cross-platform database manager designed for developers.\n      It supports MySQL, PostgreSQL, and SQLite with an intuitive interface for browsing\n      tables, running queries, and managing database connections."
+      ],
+      "urls": {
+        "homepage": "https://github.com/debba/tabularis",
+        "bugtracker": "https://github.com/debba/tabularis/issues"
+      },
+      "bugtracker": "https://github.com/debba/tabularis/issues",
+      "help": null,
+      "screenshots": [
+        "https://raw.githubusercontent.com/TabularisDB/website/main/public/img/overview.gif"
+      ],
+      "summary": "A database manager for developers",
+      "submitter": "jon",
+      "source_repo": "https://github.com/debba/tabularis",
+      "license": "Apache-2.0",
+      "homepage": "https://github.com/debba/tabularis",
+      "tags": [
+        "development",
+        "database"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "io.github.dprietob.luma",
+      "name": "Luma",
+      "icon": "https://repo.omapak.org/icons/io.github.dprietob.luma.png",
+      "developer": "dprietob",
+      "description": [
+        "Luma plays many audio tracks at once and lets you control each one\n      independently, with the look and feel of a professional studio\n      tool. A focused native app for sound technicians and broadcast\n      operators."
+      ],
+      "urls": {
+        "homepage": "https://github.com/dprietob/luma",
+        "bugtracker": "https://github.com/dprietob/luma/issues"
+      },
+      "bugtracker": "https://github.com/dprietob/luma/issues",
+      "help": null,
+      "screenshots": [
+        "https://raw.githubusercontent.com/dprietob/luma/master/screenshots/main.png",
+        "https://raw.githubusercontent.com/dprietob/luma/master/docs/images/channels.png",
+        "https://raw.githubusercontent.com/dprietob/luma/master/docs/images/devices.png"
+      ],
+      "summary": "Real-time multitrack audio mixer for Linux",
+      "submitter": "jon",
+      "source_repo": "https://github.com/dprietob/luma",
+      "license": "GPL-3.0",
+      "homepage": "https://github.com/dprietob/luma",
+      "tags": [
+        "audio"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "io.github.edneyosf.edconv",
+      "name": "Edconv",
+      "icon": "https://repo.omapak.org/icons/io.github.edneyosf.edconv.png",
+      "developer": "Edney Osf",
+      "description": [
+        "A user-friendly interface that simplifies the power of FFmpeg. It's designed for fast and efficient conversion of video and audio files."
+      ],
+      "urls": {
+        "homepage": "https://github.com/edneyosf/Edconv",
+        "bugtracker": "https://github.com/edneyosf/Edconv/issues",
+        "donation": "https://buymeacoffee.com/edneyosf",
+        "contact": "https://www.reddit.com/user/EdneyOsf"
+      },
+      "bugtracker": "https://github.com/edneyosf/Edconv/issues",
+      "help": null,
+      "screenshots": [
+        "https://raw.githubusercontent.com/edneyosf/Edconv/main/assets/edconv.png"
+      ],
+      "summary": "An intuitive FFmpeg GUI",
+      "submitter": "jon",
+      "source_repo": "https://github.com/edneyosf/Edconv",
+      "license": "MIT",
+      "homepage": "https://github.com/edneyosf/Edconv",
+      "tags": [
+        "utility",
+        "audio",
+        "video"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
     {
       "app_id": "io.github.juwan_hwang.Zephyr",
       "name": "Zephyr",
@@ -10,7 +718,7 @@
         "Zephyr is a state-of-the-art cross-platform GUI client for Mihomo, combining modern desktop aesthetics, high performance with Rust and Tauri v2, and a 13-layer security defense architecture.",
         [
           "High performance and low memory footprint with Tauri v2 and native Rust IPC",
-          "Zero heavyweight frontend frameworks \u2014 pure native JavaScript UI",
+          "Zero heavyweight frontend frameworks — pure native JavaScript UI",
           "Full proxy protocol management, subscription parsing, and latency testing",
           "Real-time traffic oscilloscope monitoring and system tray integration"
         ]
@@ -34,6 +742,129 @@
         "network",
         "proxy",
         "clash",
+        "utility"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "io.github.lluciocc.Vish",
+      "name": "Vish",
+      "icon": "https://repo.omapak.org/icons/io.github.lluciocc.Vish.png",
+      "developer": "Lluciocc",
+      "description": [
+        "Vish is an editor for creating Bash scripts using a node interface. \n        It allows users to design their scripts by connecting nodes that represent different \n        Bash commands and basic programming concepts.\n        Vish is made for educational purposes and to simplify the process of creating Bash scripts."
+      ],
+      "urls": {
+        "homepage": "https://codeberg.org/Lluciocc/Vish",
+        "bugtracker": "https://codeberg.org/Lluciocc/Vish/issues",
+        "vcs-browser": "https://codeberg.org/Lluciocc/Vish",
+        "contribute": "https://codeberg.org/Lluciocc/Vish/wiki/Contributing",
+        "translate": "https://codeberg.org/Lluciocc/Vish/wiki/Contributing#translating",
+        "donation": "https://github.com/Lluciocc/Vish?sponsor=1"
+      },
+      "bugtracker": "https://codeberg.org/Lluciocc/Vish/issues",
+      "help": null,
+      "screenshots": [
+        "https://raw.githubusercontent.com/Lluciocc/vish-utils/main/screenshots/screenshots1.png",
+        "https://raw.githubusercontent.com/Lluciocc/vish-utils/main/screenshots/screenshots2.png",
+        "https://raw.githubusercontent.com/Lluciocc/vish-utils/main/screenshots/screenshots3.png"
+      ],
+      "summary": "Visual Bash Editor",
+      "submitter": "jon",
+      "source_repo": "https://github.com/Lluciocc/Vish",
+      "license": "MIT",
+      "homepage": "https://codeberg.org/Lluciocc/Vish",
+      "tags": [
+        "development",
+        "utility"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "io.github.makis_san.Rocker",
+      "name": "Rocker",
+      "icon": "https://repo.omapak.org/icons/io.github.makis_san.Rocker.png",
+      "developer": "makis-san",
+      "description": [
+        "Rocker is a native desktop client for Docker containers, written in\n      pure Rust on egui: no webview, no bundled Chromium, no Electron.\n      Browse images, inspect and manage containers, and follow logs from\n      a lightweight native UI."
+      ],
+      "urls": {
+        "homepage": "https://github.com/makis-san/rocker",
+        "bugtracker": "https://github.com/makis-san/rocker/issues"
+      },
+      "bugtracker": "https://github.com/makis-san/rocker/issues",
+      "help": null,
+      "screenshots": [],
+      "summary": "Native desktop client for Docker containers",
+      "submitter": "jon",
+      "source_repo": "https://github.com/makis-san/rocker",
+      "license": "Apache-2.0",
+      "homepage": "https://github.com/makis-san/rocker",
+      "tags": [
+        "development",
+        "utility"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "io.github.marcelogomes90.FileCrate",
+      "name": "File Crate",
+      "icon": "https://repo.omapak.org/icons/io.github.marcelogomes90.FileCrate.png",
+      "developer": "marcelogomes90",
+      "description": [
+        "File Crate is a native archive viewer, extractor and creator built\n      for the COSMIC desktop. It opens ZIP, 7Z, RAR, TAR, TAR.GZ, TAR.XZ\n      and TAR.ZST archives, and creates ZIP, 7Z and TAR-family archives\n      with password protection for ZIP."
+      ],
+      "urls": {
+        "homepage": "https://github.com/marcelogomes90/filecrate",
+        "bugtracker": "https://github.com/marcelogomes90/filecrate/issues"
+      },
+      "bugtracker": "https://github.com/marcelogomes90/filecrate/issues",
+      "help": null,
+      "screenshots": [],
+      "summary": "Your archives, neatly packed",
+      "submitter": "jon",
+      "source_repo": "https://github.com/marcelogomes90/filecrate",
+      "homepage": "https://github.com/marcelogomes90/filecrate",
+      "tags": [
+        "utility"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "io.github.Matteo842.SaveState",
+      "name": "SaveState",
+      "icon": "https://repo.omapak.org/icons/io.github.Matteo842.SaveState.png",
+      "developer": null,
+      "description": [
+        "A versatile game save backup manager, featuring Steam detection, Minecraft support, drag &amp; drop, desktop shortcuts and emulator compatible."
+      ],
+      "urls": {
+        "homepage": "https://github.com/Matteo842/SaveState"
+      },
+      "bugtracker": null,
+      "help": null,
+      "screenshots": [
+        "https://raw.githubusercontent.com/Matteo842/SaveState/refs/heads/main/images/gui.png"
+      ],
+      "summary": "A simple game save manager",
+      "submitter": "jon",
+      "source_repo": "https://github.com/Matteo842/SaveState",
+      "license": "GPL-3.0-or-later",
+      "homepage": "https://github.com/Matteo842/SaveState",
+      "tags": [
+        "game",
         "utility"
       ],
       "source_access": "public",
@@ -84,13 +915,47 @@
       "report_available": false
     },
     {
+      "app_id": "io.github.wusel1007.clamav-gui",
+      "name": "ClamAV-GUI",
+      "icon": "https://repo.omapak.org/icons/io.github.wusel1007.clamav-gui.png",
+      "developer": "wusel1007",
+      "description": [
+        "ClamAV-GUI wraps the ClamAV antivirus engine in a Qt interface:\n      on-demand and scheduled scans, signature updates through freshclam,\n      and clamd configuration, without touching the command line.",
+        "Scans can be launched from the window or by dropping files onto the\n      drop zone; results, quarantine handling and scan logs are presented\n      per profile. The UI ships German natively and carries community\n      translations that the author asks native speakers to review."
+      ],
+      "urls": {
+        "homepage": "https://github.com/wusel1007/clamav-gui",
+        "bugtracker": "https://github.com/wusel1007/clamav-gui/issues"
+      },
+      "bugtracker": "https://github.com/wusel1007/clamav-gui/issues",
+      "help": null,
+      "screenshots": [
+        "https://cn.opendesktop.org/img/hive/content-pre1/170782-1.png",
+        "https://cn.opendesktop.org/img/hive/content-pre2/170782-2.png",
+        "https://cn.opendesktop.org/img/hive/content-pre3/170782-3.png"
+      ],
+      "summary": "Qt front-end for the ClamAV antivirus engine",
+      "submitter": "jon",
+      "source_repo": "https://github.com/wusel1007/clamav-gui",
+      "license": "GPL-3.0",
+      "homepage": "https://github.com/wusel1007/clamav-gui",
+      "tags": [
+        "security",
+        "utility"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
       "app_id": "io.ipfs.Desktop",
       "name": "IPFS Desktop",
       "icon": "https://repo.omapak.org/icons/io.ipfs.Desktop.png",
       "developer": "Interplanetary Shipyard",
       "description": [
         "IPFS Desktop gives you all the power of IPFS in a convenient desktop app:\n      a complete IPFS node, plus handy OS menubar/taskbar shortcuts and an all-in-one\n      file manager, peer map, and content explorer.",
-        "Use IPFS Desktop to get acquainted with IPFS without needing to touch the\n      terminal \u2014 or, if you're already experienced, use the powerful menubar/taskbar\n      shortcuts alongside the command line to make your IPFS workflow faster.",
+        "Use IPFS Desktop to get acquainted with IPFS without needing to touch the\n      terminal — or, if you're already experienced, use the powerful menubar/taskbar\n      shortcuts alongside the command line to make your IPFS workflow faster.",
         "Features include:",
         [
           "Start your node at system startup and control it from your OS system tray",
@@ -173,6 +1038,126 @@
       "report_available": false
     },
     {
+      "app_id": "net.anvil_organizer.AnvilOrganizer",
+      "name": "Anvil Organizer",
+      "icon": "https://repo.omapak.org/icons/net.anvil_organizer.AnvilOrganizer.png",
+      "developer": "Marc",
+      "description": [
+        "Anvil Organizer is a native Linux mod manager for games like Skyrim,\n      Fallout 4, Cyberpunk 2077, Baldur's Gate 3, Starfield, and more.",
+        "Inspired by Mod Organizer 2, it features virtual file system deployment,\n      profile management, Nexus Mods integration, drag-and-drop load ordering,\n      and plugin conflict detection."
+      ],
+      "urls": {
+        "homepage": "https://anvil-organizer.net",
+        "bugtracker": "https://github.com/Marc1326/Anvil-Organizer/issues",
+        "vcs-browser": "https://github.com/Marc1326/Anvil-Organizer"
+      },
+      "bugtracker": "https://github.com/Marc1326/Anvil-Organizer/issues",
+      "help": null,
+      "screenshots": [
+        "https://raw.githubusercontent.com/Marc1326/Anvil-Organizer/main/site/img/screenshots/bg3-modlist.png",
+        "https://raw.githubusercontent.com/Marc1326/Anvil-Organizer/main/site/img/screenshots/cyberpunk-modlist.png",
+        "https://raw.githubusercontent.com/Marc1326/Anvil-Organizer/main/site/img/screenshots/starfield-modlist.png"
+      ],
+      "summary": "Native Linux Mod Manager inspired by Mod Organizer 2",
+      "submitter": "jon",
+      "source_repo": "https://github.com/Marc1326/Anvil-Organizer",
+      "license": "GPL-3.0",
+      "homepage": "https://anvil-organizer.net",
+      "tags": [
+        "game"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "net.mccompanion.MCCompanion",
+      "name": "MCCompanion",
+      "icon": "https://repo.omapak.org/icons/net.mccompanion.MCCompanion.png",
+      "developer": "MCCORG",
+      "description": [
+        "MCCompanion lets you connect to external Minecraft servers from\n      PlayStation, Xbox, Nintendo Switch and other consoles, bridging\n      any server to your local network so consoles can join as if it\n      were a LAN game.",
+        "It also packs tools for skins, player lookup, server tracking and\n      a built-in wiki."
+      ],
+      "urls": {
+        "homepage": "https://github.com/MCCORG/MCCompanion",
+        "bugtracker": "https://github.com/MCCORG/MCCompanion/issues"
+      },
+      "bugtracker": "https://github.com/MCCORG/MCCompanion/issues",
+      "help": null,
+      "screenshots": [],
+      "summary": "The Minecraft companion app",
+      "submitter": "jon",
+      "source_repo": "https://github.com/MCCORG/MCCompanion",
+      "license": "GPL-3.0",
+      "homepage": "https://github.com/MCCORG/MCCompanion",
+      "tags": [
+        "game",
+        "utility"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "org.keyoxide.Keyoxide",
+      "name": "Keyoxide",
+      "icon": null,
+      "developer": "Keyoxide",
+      "description": [
+        "Keyoxide allows you to prove “ownership” of accounts on websites, domain\n      names, IM, etc., regardless of your username.",
+        "When you visit someone’s Keyoxide profile and see a green tick next to an\n      account on some website, it was proven beyond doubt that the same person\n      who set up this profile also holds that account.",
+        "App features:",
+        [
+          "Runs on Linux desktop and mobile",
+          "Simple and straightforward UI",
+          "Onboarding and guided tour",
+          "Fully open source",
+          "Supports fingerprint and email address as identifiers",
+          "Supports fetching identities via keyservers and Web Key Directory",
+          "Deep linking with openpgp4fpr and aspe URL schemes",
+          "Search history",
+          "Contacts feature",
+          "ASP profile management: create, edit, delete, import, export profiles and add claims directly within the app",
+          "Hide sensitive user profiles and protect them with authentication",
+          "Add multiple PGP or ASP profiles",
+          "Available in 11 languages"
+        ]
+      ],
+      "urls": {
+        "homepage": "https://keyoxide.org",
+        "vcs-browser": "https://codeberg.org/Berker/keyoxide-flutter",
+        "bugtracker": "https://codeberg.org/Berker/keyoxide-flutter/issues",
+        "details": "https://codeberg.org/Berker/keyoxide-flutter/src/tag/2.4.4/CHANGELOG.md"
+      },
+      "bugtracker": "https://codeberg.org/Berker/keyoxide-flutter/issues",
+      "help": null,
+      "screenshots": [
+        "https://codeberg.org/Berker/keyoxide-flutter/raw/branch/master/metadata/en-US/images/phoneScreenshots/Screenshot_1.png",
+        "https://codeberg.org/Berker/keyoxide-flutter/raw/branch/master/metadata/en-US/images/phoneScreenshots/Screenshot_2.png",
+        "https://codeberg.org/Berker/keyoxide-flutter/raw/branch/master/metadata/en-US/images/phoneScreenshots/Screenshot_3.png",
+        "https://codeberg.org/Berker/keyoxide-flutter/raw/branch/master/metadata/en-US/images/phoneScreenshots/Screenshot_4.png",
+        "https://codeberg.org/Berker/keyoxide-flutter/raw/branch/master/metadata/en-US/images/phoneScreenshots/Screenshot_5.png",
+        "https://codeberg.org/Berker/keyoxide-flutter/raw/branch/master/metadata/en-US/images/phoneScreenshots/Screenshot_6.png"
+      ],
+      "summary": "Verify decentralized cryptographic identities on the go",
+      "submitter": "jon",
+      "source_repo": "https://codeberg.org/Berker/keyoxide-flutter",
+      "license": "MIT",
+      "homepage": "https://keyoxide.org",
+      "tags": [
+        "utility",
+        "identity",
+        "security"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
       "app_id": "org.libredb.Studio",
       "name": "LibreDB Studio",
       "icon": "https://repo.omapak.org/icons/org.libredb.Studio.png",
@@ -224,6 +1209,142 @@
       "tags": [
         "development",
         "database"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "org.mammothpublishing.LetterFriends",
+      "name": "Letter Friends",
+      "icon": "https://repo.omapak.org/icons/org.mammothpublishing.LetterFriends.png",
+      "developer": "mammothpublishing",
+      "description": [
+        "Letter Friends is a keyboard for children too young to read: keys\n      speak their letters and sounds, helping pre-literate kids to\n      explore typing and words on their own."
+      ],
+      "urls": {
+        "homepage": "https://mammothpublishing.org/letter-friends/",
+        "bugtracker": "https://github.com/mammothpublishing/letter-friends/issues"
+      },
+      "bugtracker": "https://github.com/mammothpublishing/letter-friends/issues",
+      "help": null,
+      "screenshots": [],
+      "summary": "A keyboard for children too young to read",
+      "submitter": "jon",
+      "source_repo": "https://github.com/mammothpublishing/letter-friends",
+      "license": "GPL-3.0",
+      "homepage": "https://mammothpublishing.org/letter-friends/",
+      "tags": [
+        "education",
+        "game"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "org.openrgb.OpenRGB.Plugin.E131Receiver",
+      "name": "OpenRGB E1.31 Receiver Plugin",
+      "icon": null,
+      "developer": "OpenRGB Developers",
+      "description": [
+        "This OpenRGB plugin adds E1.31 integration, the industry-standard\n      lighting protocol supported by a wide variety of control software\n      and often used for sequenced light shows. Control all of your\n      OpenRGB-supported hardware from these programs by turning your\n      setup into an E1.31 receiver."
+      ],
+      "urls": {
+        "homepage": "https://gitlab.com/OpenRGBDevelopers/OpenRGBE131ReceiverPlugin",
+        "bugtracker": "https://gitlab.com/OpenRGBDevelopers/OpenRGBE131ReceiverPlugin/-/issues"
+      },
+      "bugtracker": "https://gitlab.com/OpenRGBDevelopers/OpenRGBE131ReceiverPlugin/-/issues",
+      "help": null,
+      "screenshots": [],
+      "summary": "Turn your OpenRGB setup into an E1.31 receiver",
+      "submitter": "jon",
+      "source_repo": "https://gitlab.com/OpenRGBDevelopers/OpenRGBE131ReceiverPlugin",
+      "homepage": "https://gitlab.com/OpenRGBDevelopers/OpenRGBE131ReceiverPlugin",
+      "tags": [
+        "extension",
+        "utility"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "org.openrgb.OpenRGB.Plugin.Effects",
+      "name": "OpenRGB Effects Plugin",
+      "icon": null,
+      "developer": "OpenRGB Developers",
+      "description": [
+        "Synchronize your OpenRGB lighting with a wide variety of\n      customizable effects including audio visualizations, screen\n      mirroring (Ambilight), OpenGL shaders, and many more."
+      ],
+      "urls": {
+        "homepage": "https://gitlab.com/OpenRGBDevelopers/OpenRGBEffectsPlugin",
+        "bugtracker": "https://gitlab.com/OpenRGBDevelopers/OpenRGBEffectsPlugin/-/issues"
+      },
+      "bugtracker": "https://gitlab.com/OpenRGBDevelopers/OpenRGBEffectsPlugin/-/issues",
+      "help": null,
+      "screenshots": [],
+      "summary": "Synchronize OpenRGB lighting with customizable effects",
+      "submitter": "jon",
+      "source_repo": "https://gitlab.com/OpenRGBDevelopers/OpenRGBEffectsPlugin",
+      "homepage": "https://gitlab.com/OpenRGBDevelopers/OpenRGBEffectsPlugin",
+      "tags": [
+        "extension",
+        "utility"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "org.openrgb.OpenRGB.Plugin.VisualMap",
+      "name": "OpenRGB Visual Map Plugin",
+      "icon": null,
+      "developer": "OpenRGB Developers",
+      "description": [
+        "This OpenRGB plugin lets you organize your real devices on a map\n      and create one or many virtual devices. Apply gradients (presets\n      or custom) across the layout and expose it to other plugins such\n      as the Effects engine."
+      ],
+      "urls": {
+        "homepage": "https://gitlab.com/OpenRGBDevelopers/OpenRGBVisualMapPlugin",
+        "bugtracker": "https://gitlab.com/OpenRGBDevelopers/OpenRGBVisualMapPlugin/-/issues"
+      },
+      "bugtracker": "https://gitlab.com/OpenRGBDevelopers/OpenRGBVisualMapPlugin/-/issues",
+      "help": null,
+      "screenshots": [],
+      "summary": "Map real devices and create virtual ones in OpenRGB",
+      "submitter": "jon",
+      "source_repo": "https://gitlab.com/OpenRGBDevelopers/OpenRGBVisualMapPlugin",
+      "homepage": "https://gitlab.com/OpenRGBDevelopers/OpenRGBVisualMapPlugin",
+      "tags": [
+        "extension",
+        "utility"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "org.tahoma2d.Tahoma2D",
+      "name": "Tahoma2D",
+      "icon": "https://repo.omapak.org/icons/org.tahoma2d.Tahoma2D.png",
+      "developer": null,
+      "description": "Continuity submission. Tahoma2D (657 stars) had its Flathub submission (flathub/flathub#8742) denied over a filesystem=home lint exception — without it the app \"cannot save anything and is rendered completely useless\", as the author put it — and he closed it himself. omapak picked it up. Manifest from that PR unchanged; shared-modules vendored.",
+      "urls": {},
+      "bugtracker": null,
+      "help": null,
+      "screenshots": [],
+      "summary": "Tahoma2D, a 2D animation and compositing application for making short films and illustrations",
+      "submitter": "jon",
+      "source_repo": "https://github.com/turtletooth/Tahoma2D",
+      "homepage": "https://tahoma2d.org",
+      "tags": [
+        "graphics",
+        "animation"
       ],
       "source_access": "public",
       "verdict": "published",
