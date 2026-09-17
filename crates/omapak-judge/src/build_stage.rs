@@ -4,7 +4,12 @@ use std::path::Path;
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 
-pub fn run(manifest: &Path, work_dir: &Path, repo_dir: &Path) -> Result<BuildReport> {
+pub fn run(
+    manifest: &Path,
+    work_dir: &Path,
+    repo_dir: &Path,
+    tui_catchall: bool,
+) -> Result<BuildReport> {
     std::fs::create_dir_all(work_dir).context("create build dir")?;
     std::fs::create_dir_all(repo_dir).context("create repo dir")?;
 
@@ -18,7 +23,15 @@ pub fn run(manifest: &Path, work_dir: &Path, repo_dir: &Path) -> Result<BuildRep
     );
     let started = Instant::now();
 
-    let mut child = Command::new("flatpak-builder")
+    let mut cmd = Command::new("flatpak-builder");
+    // TUI submissions may ship no icon: flatpak-builder's export shells out
+    // to `appstreamcli compose`, which the CI machinery shadows with
+    // deploy/appstreamcli-catchall.sh — it injects the omapak catchall
+    // under the missing icon's name when this flag is set.
+    if tui_catchall {
+        cmd.env("OMAPAK_TUI_CATCHALL", "1");
+    }
+    let mut child = cmd
         .arg("--force-clean")
         .arg("--disable-rofiles-fuse")
         .arg("--user")
