@@ -88,6 +88,17 @@ jobs:
       - name: flatpak-builder version check
         run: flatpak-builder --version
 
+      # TUI submissions may ship no icon: flatpak-builder's export spawns
+      # bare `appstreamcli compose` through PATH, so this shim (a) injects
+      # the omapak catchall under the missing icon's name when the judge
+      # sets OMAPAK_TUI_CATCHALL=1 (metadata.yml tags: tui|terminal) and
+      # (b) passes every other invocation through untouched — GUI apps
+      # keep the icon requirement.
+      - name: Install appstreamcli catchall shim
+        run: |
+          sudo install -m755 deploy/appstreamcli-catchall.sh /usr/local/bin/appstreamcli
+          sudo install -Dm644 assets/icons/tui.png /usr/local/share/omapak/tui.png
+
       - name: Changed app dirs
         if: github.event_name == 'pull_request'
         run: |

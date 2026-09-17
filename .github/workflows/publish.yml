@@ -9,6 +9,9 @@ on:
       - "deploy/push-to-r2.py"
       - "deploy/pull-from-r2.py"
       - "deploy/install-runtimes.sh"
+      - "deploy/appstreamcli-catchall.sh"
+      - "deploy/is-tui-app.sh"
+      - "assets/icons/tui.png"
       - ".github/workflows/publish.yml"
   workflow_dispatch:
 
@@ -97,6 +100,14 @@ jobs:
       - name: flatpak-builder version check
         run: flatpak-builder --version
 
+      # Same catchall machinery as the judge (deploy/appstreamcli-catchall.sh):
+      # iconless TUI apps get the omapak placeholder at export. The loop
+      # below sets OMAPAK_TUI_CATCHALL per app via deploy/is-tui-app.sh.
+      - name: Install appstreamcli catchall shim
+        run: |
+          sudo install -m755 deploy/appstreamcli-catchall.sh /usr/local/bin/appstreamcli
+          sudo install -Dm644 assets/icons/tui.png /usr/local/share/omapak/tui.png
+
       - name: Install runtimes
         run: ./deploy/install-runtimes.sh
 
@@ -138,6 +149,13 @@ jobs:
             fi
             [ -n "$manifest" ] || continue
             echo "::group::build $name"
+            # TUI apps (metadata.yml tags) may ship no icon — the
+            # appstreamcli catchall shim only injects when this is 1.
+            if ./deploy/is-tui-app.sh "$app"; then
+              export OMAPAK_TUI_CATCHALL=1
+            else
+              export OMAPAK_TUI_CATCHALL=0
+            fi
             if flatpak-builder --force-clean --disable-rofiles-fuse --user \
                 --gpg-sign="$keyid" \
                 --repo=build-repo ".flatpak-builder/$name" "$manifest" >"/tmp/build-$name.log" 2>&1; then
