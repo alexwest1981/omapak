@@ -7,7 +7,7 @@
   <summary>A simple game save manager</summary>
   <description>
     <p>
-      A versatile game save backup manager, featuring Steam detection, Minecraft support, drag & drop, desktop shortcuts and emulator compatible.
+      A versatile game save backup manager, featuring Steam detection, Minecraft support, drag &amp; drop, desktop shortcuts and emulator compatible.
     </p>
   </description>
   <launchable type="desktop-id">io.github.Matteo842.SaveState.desktop</launchable>
