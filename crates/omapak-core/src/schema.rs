@@ -210,6 +210,10 @@ pub struct StaticReport {
     /// project (matched on the submitter's declared source_repo).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub duplicate_of: Option<String>,
+    /// metadata.yml tags this app tui|terminal: it may ship no icon —
+    /// the build injects the omapak catchall (deploy/appstreamcli-catchall.sh).
+    #[serde(default)]
+    pub tui: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

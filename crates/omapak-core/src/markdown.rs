@@ -14,7 +14,7 @@ pub fn render_markdown(report: &crate::schema::Report) -> String {
     }
 
     if !report.build.ok {
-        out.push_str(&render_build_failure(&report.build));
+        out.push_str(&render_build_failure(&report.build, report.static_report.tui));
     }
 
     if let Some(rubric) = &report.rubric {
@@ -76,12 +76,12 @@ pub fn render_markdown(report: &crate::schema::Report) -> String {
 /// A failed build is the one hard gate, and the raw reason is the only
 /// thing a submitter can act on — so the report must say what broke and
 /// what to change, not just "changes requested".
-fn render_build_failure(build: &crate::schema::BuildReport) -> String {
+fn render_build_failure(build: &crate::schema::BuildReport, tui: bool) -> String {
     let mut out = String::new();
     out.push_str("The flatpak build is the one hard gate, and it did not complete.\n\n");
     out.push_str("**How to fix:** reproduce it locally, fix your manifest, then push to this PR — the judge reruns automatically:\n\n");
     out.push_str("```bash\nflatpak-builder --user --force-clean --repo=/tmp/repo _build apps/<your-app-id>/<manifest>.yml\n```\n\n");
-    for hint in build_hints(&build.log_tail) {
+    for hint in build_hints(&build.log_tail, tui) {
         out.push_str(&format!("- {hint}\n"));
     }
     out.push_str("- If the log below shows omapak tooling failing rather than your app, say so in this PR — that is our bug, not yours.\n");
@@ -97,13 +97,25 @@ fn render_build_failure(build: &crate::schema::BuildReport) -> String {
 /// Match the handful of failure signatures that cover almost every
 /// rejected submission; anything unrecognized falls through to the
 /// reproduce-locally advice above.
-fn build_hints(log_tail: &[String]) -> Vec<&'static str> {
+fn build_hints(log_tail: &[String], tui: bool) -> Vec<&'static str> {
     let joined: String = log_tail
         .iter()
         .map(|l| l.to_lowercase())
         .collect::<Vec<_>>()
         .join("\n");
     let mut hints = Vec::new();
+    // The icon gate fires at export (appstreamcli compose), and its default
+    // error text is opaque — say what actually broke instead of letting the
+    // generic "not found" advice send the submitter hunting their sources.
+    let icon_gate =
+        joined.contains("icon-not-found") || joined.contains("appstreamcli compose failed");
+    if icon_gate {
+        hints.push(if tui {
+            "The export failed on the icon gate: your app ships no icon, and omapak injects its catchall TUI icon automatically at build time — re-run the judge (or ping us) and this passes with no action from you."
+        } else {
+            "The export failed on the icon gate: ship a real icon (≥64×64, e.g. `share/icons/hicolor/512x512/apps/<app-id>.png`) and point the desktop file's `Icon=` at it."
+        });
+    }
     if joined.contains("sha256")
         && (joined.contains("mismatch")
             || joined.contains("does not match")
@@ -114,7 +126,7 @@ fn build_hints(log_tail: &[String]) -> Vec<&'static str> {
             "A source checksum failed: download the file your manifest points at, run `sha256sum` on it, and put that value in the source's `sha256:`.",
         );
     }
-    if joined.contains("404") || joined.contains("not found") {
+    if joined.contains("404") || (joined.contains("not found") && !icon_gate) {
         hints.push(
             "A source download failed: check that the URL, tag and release asset in your manifest exist today (assets often move when a release is re-published).",
         );
@@ -212,6 +224,32 @@ mod tests {
         assert!(md.contains("com.example.Better"));
         assert!(md.contains("3/5"));
         // assertion removed: minimal format has no gate labels
+    }
+
+    #[test]
+    fn icon_gate_failure_explains_itself() {
+        let mut r = report();
+        r.verdict = Verdict::BuildFailed;
+        // The runner's opaque tail: compose's default report names no icon.
+        r.build = crate::schema::BuildReport {
+            ok: false,
+            duration_secs: 30,
+            log_tail: vec![
+                "Refer to the generated issue report data for details on the individual problems.".into(),
+                "Error: ERROR: appstreamcli compose failed: Child process exited with code 1".into(),
+            ],
+        };
+        r.static_report.tui = true;
+        let tui_md = render_markdown(&r);
+        assert!(tui_md.contains("icon gate"));
+        assert!(tui_md.contains("catchall TUI icon"));
+        // no misdirected source-download advice for an icon-only failure
+        assert!(!tui_md.contains("A source download failed"));
+
+        r.static_report.tui = false;
+        let gui_md = render_markdown(&r);
+        assert!(gui_md.contains("icon gate"));
+        assert!(gui_md.contains("ship a real icon"));
     }
 
     #[test]

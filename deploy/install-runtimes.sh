@@ -31,20 +31,32 @@ install_retry() {
   return 1
 }
 
-# sdk-extensions entries, one per line: handles both YAML styles —
+# sdk-extensions entries, one per line. The key may be bare YAML at
+# column 0 or an indented quoted JSON key, and the value may be a
+# one-line flow list, a multi-line array, or a YAML dash block —
+# JSON manifests like io.github.brdweb.MaTui's are the norm, and a
+# column-0-only pattern silently skips their extensions (the build
+# then dies with "Requested extension ... not installed").
 #   sdk-extensions: [org.freedesktop.Sdk.Extension.node24]
 #   sdk-extensions:
 #     - org.freedesktop.Sdk.Extension.rust-stable
+#   "sdk-extensions": [
+#     "org.freedesktop.Sdk.Extension.rust-stable"
+#   ],
 sdk_exts() {
-  awk '/^sdk-extensions:/ {
-         if ($0 ~ /\[/) {
-           sub(/^sdk-extensions:[[:space:]]*/, ""); gsub(/[\[\],]/, " "); print; exit
+  awk 'match($0, /^[[:space:]]*"?sdk-extensions"?[[:space:]]*:/) {
+         rest = substr($0, RSTART + RLENGTH)
+         if (rest ~ /\]/) {
+           gsub(/[][]/, " ", rest); gsub(/,/, " ", rest)
+           print rest; exit
          }
+         if (rest ~ /\[/) { inf=1; next }
          f=1; next
        }
+       inf { if ($0 ~ /\]/) exit; print; next }
        f && /^[[:space:]]*-/ {print; next}
        f {exit}' "$1" \
-    | sed -e 's/^[[:space:]]*-[[:space:]]*//' -e 's/["'\'']//g' -e 's/\r$//'
+    | sed -e 's/^[[:space:]]*-[[:space:]]*//' -e 's/["'\'',]//g' -e 's/\r$//'
 }
 
 # Published branches for an extension, one per line. remote-ls is slow,

@@ -79,6 +79,7 @@ fn main() -> Result<()> {
                     &manifest,
                     &cli.work.join("build"),
                     &cli.work.join("repo"),
+                    static_report.tui,
                 )?;
                 if !build.ok && build.log_tail.is_empty() {
                     eprintln!("  (flatpak-builder produced no output)");

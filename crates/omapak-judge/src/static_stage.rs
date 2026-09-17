@@ -48,6 +48,30 @@ pub fn run(app_dir: &Path, source_dir: Option<&Path>) -> Result<StaticReport> {
 
     report.manifest = manifest;
     report.metadata_present = app_dir.join("metadata.yml").is_file();
+    // TUI apps (metadata.yml tags) may ship no artwork: the build injects
+    // the omapak catchall icon at export time. GUI apps keep the
+    // requirement — an icon is a fair ask for anything graphical.
+    report.tui = omapak_core::load_metadata(app_dir)
+        .map(|m| {
+            m.tags
+                .iter()
+                .any(|t| matches!(t.to_lowercase().as_str(), "tui" | "terminal"))
+        })
+        .unwrap_or(false);
+    if report.tui {
+        let installs_icon = manifest_path
+            .as_ref()
+            .and_then(|p| std::fs::read_to_string(p).ok())
+            .is_some_and(|text| text.contains("icons/hicolor"));
+        if !installs_icon {
+            report.advisories.push(StaticAdvisory {
+                kind: "icon".into(),
+                detail: "TUI app with no icon install detected — omapak's \
+                         catchall TUI icon is injected automatically at build time"
+                    .into(),
+            });
+        }
+    }
     if let Some(dup) = find_duplicate(app_dir) {
         report.advisories.push(StaticAdvisory {
             kind: "duplicate".into(),
