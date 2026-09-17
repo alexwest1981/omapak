@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.openrgb.OpenRGB.Plugin.VisualMap</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>OpenRGB Visual Map Plugin</name>
+  <summary>Map real devices and create virtual ones in OpenRGB</summary>
+  <description>
+    <p>
+      This OpenRGB plugin lets you organize your real devices on a map
+      and create one or many virtual devices. Apply gradients (presets
+      or custom) across the layout and expose it to other plugins such
+      as the Effects engine.
+    </p>
+  </description>
+  <developer id="org.openrgb">
+    <name>OpenRGB Developers</name>
+  </developer>
+  <url type="homepage">https://gitlab.com/OpenRGBDevelopers/OpenRGBVisualMapPlugin</url>
+  <url type="bugtracker">https://gitlab.com/OpenRGBDevelopers/OpenRGBVisualMapPlugin/-/issues</url>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="1.0rc2" date="2026-09-16"/>
+  </releases>
+</component>

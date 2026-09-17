@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.mammothpublishing.LetterFriends</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0</project_license>
+  <name>Letter Friends</name>
+  <summary>A keyboard for children too young to read</summary>
+  <description>
+    <p>
+      Letter Friends is a keyboard for children too young to read: keys
+      speak their letters and sounds, helping pre-literate kids to
+      explore typing and words on their own.
+    </p>
+  </description>
+  <developer id="org.mammothpublishing">
+    <name>mammothpublishing</name>
+  </developer>
+  <launchable type="desktop-id">org.mammothpublishing.LetterFriends.desktop</launchable>
+  <url type="homepage">https://mammothpublishing.org/letter-friends/</url>
+  <url type="bugtracker">https://github.com/mammothpublishing/letter-friends/issues</url>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="1.0" date="2026-09-16"/>
+  </releases>
+</component>

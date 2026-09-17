@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>net.mccompanion.MCCompanion</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <name>MCCompanion</name>
+  <summary>The Minecraft companion app</summary>
+  <description>
+    <p>
+      MCCompanion lets you connect to external Minecraft servers from
+      PlayStation, Xbox, Nintendo Switch and other consoles, bridging
+      any server to your local network so consoles can join as if it
+      were a LAN game.
+    </p>
+    <p>
+      It also packs tools for skins, player lookup, server tracking and
+      a built-in wiki.
+    </p>
+  </description>
+  <developer id="net.mccompanion">
+    <name>MCCORG</name>
+  </developer>
+  <launchable type="desktop-id">net.mccompanion.MCCompanion.desktop</launchable>
+  <url type="homepage">https://github.com/MCCORG/MCCompanion</url>
+  <url type="bugtracker">https://github.com/MCCORG/MCCompanion/issues</url>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="3.4.2" date="2026-09-16"/>
+  </releases>
+</component>
