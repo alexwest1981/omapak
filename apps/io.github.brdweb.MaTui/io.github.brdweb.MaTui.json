@@ -1,0 +1,98 @@
+{
+    "id": "io.github.brdweb.MaTui",
+    "branch": "stable",
+    "runtime": "org.freedesktop.Platform",
+    "runtime-version": "25.08",
+    "sdk": "org.freedesktop.Sdk",
+    "sdk-extensions": [
+        "org.freedesktop.Sdk.Extension.rust-stable"
+    ],
+    "command": "ma-tui",
+    "finish-args": [
+        "--command=ma-tui",
+        "--share=network",
+        "--socket=pulseaudio",
+        "--talk-name=org.freedesktop.secrets",
+        "--filesystem=~/.local/state/omarchy/current:ro"
+    ],
+    "build-options": {
+        "append-path": "/usr/lib/sdk/rust-stable/bin",
+        "env": {
+            "CARGO_HOME": "/run/build/ma-tui/cargo"
+        }
+    },
+    "modules": [
+        {
+            "name": "alsa-lib",
+            "buildsystem": "autotools",
+            "config-opts": [
+                "--disable-python"
+            ],
+            "cleanup": [
+                "/include",
+                "/lib/pkgconfig",
+                "/share/aclocal"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://www.alsa-project.org/files/pub/lib/alsa-lib-1.2.16.1.tar.bz2",
+                    "sha256": "f740db7f488255944ffd4428416ee3390a96742856916433df468c281436480e"
+                }
+            ]
+        },
+        {
+            "name": "libsecret",
+            "buildsystem": "meson",
+            "config-opts": [
+                "-Dcrypto=disabled",
+                "-Dvapi=false",
+                "-Dintrospection=false",
+                "-Dgtk_doc=false",
+                "-Dmanpage=false",
+                "-Dbash_completion=disabled",
+                "-Dpam=false"
+            ],
+            "cleanup": [
+                "/include",
+                "/lib/pkgconfig",
+                "/lib/girepository-1.0",
+                "/share/gir-1.0",
+                "/share/vala"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://download.gnome.org/sources/libsecret/0.21/libsecret-0.21.7.tar.xz",
+                    "sha256": "6b452e4750590a2b5617adc40026f28d2f4903de15f1250e1d1c40bfd68ed55e"
+                }
+            ]
+        },
+        {
+            "name": "ma-tui",
+            "buildsystem": "simple",
+            "build-commands": [
+                "cargo --offline fetch --locked",
+                "cargo --offline build --release --locked",
+                "install -Dm755 target/release/ma-tui /app/bin/ma-tui",
+                "install -Dm644 packaging/flatpak/io.github.brdweb.MaTui.desktop /app/share/applications/io.github.brdweb.MaTui.desktop",
+                "desktop-file-validate /app/share/applications/io.github.brdweb.MaTui.desktop",
+                "install -Dm644 io.github.brdweb.MaTui.metainfo.xml /app/share/metainfo/io.github.brdweb.MaTui.metainfo.xml",
+                "install -Dm644 LICENSE /app/share/licenses/ma-tui/LICENSE"
+            ],
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "https://github.com/brdweb/ma-tui.git",
+                    "tag": "v0.9.1",
+                    "commit": "de72d6d78415c89ed741179f754d33cde294e016"
+                },
+                {
+                    "type": "file",
+                    "path": "io.github.brdweb.MaTui.metainfo.xml"
+                },
+                "cargo-sources.json"
+            ]
+        }
+    ]
+}
