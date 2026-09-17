@@ -30,6 +30,9 @@ modules:
     buildsystem: simple
     build-options:
       env:
+        # each build-command runs as its own shell, so the toolchain path
+        # must live here rather than in an `export` line
+        PATH: /run/build/talaria/toolchain/bin:/app/bin:/usr/bin
         CARGO_HOME: /run/build/talaria/cargo
         BUN_INSTALL_CACHE_DIR: /run/build/talaria/bun_cache
     sources:
@@ -69,7 +72,6 @@ modules:
     build-commands:
       - ./rust-dist/install.sh --prefix=/run/build/talaria/toolchain --without=rust-docs
       - install -Dm755 bun-dist/bun /run/build/talaria/toolchain/bin/bun
-      - export PATH=/run/build/talaria/toolchain/bin:$PATH
       # Frontend: vendored in node-sources.json as bun's offline install
       # cache (bun_cache/<name>@<version>@@@1/), consumed via --offline.
       - cd desktop && bun install --frozen-lockfile --offline
