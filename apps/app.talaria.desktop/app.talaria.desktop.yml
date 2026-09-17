@@ -20,44 +20,12 @@ finish-args:
 
 # No sdk-extensions, deliberately: rust-stable and node are date-versioned
 # fd extensions with no //50 branch, and the runner's flatpak 1.14 cannot
-# cross-mount them on GNOME's numbered runtimes. The toolchains below are
-# sha-pinned source modules instead — buildable on any flatpak.
+# cross-mount them on GNOME's numbered runtimes. One module below installs
+# the toolchains into the build dir — never /app, where flatpak-builder's
+# eu-strip pass would corrupt rustc's DWARF 5 libs (libLLVM came out with
+# "no loadable segments" on the first try) — so nothing but the app itself
+# ships.
 modules:
-  - name: rust
-    buildsystem: simple
-    # desktop/src-tauri/rust-toolchain.toml pins 1.97.1 (edition 2024 + the
-    # tauri `unstable` multiwebview feature); the dist tarball is
-    # self-contained and installs into the build env only.
-    sources:
-      - type: archive
-        url: https://static.rust-lang.org/dist/rust-1.97.1-x86_64-unknown-linux-gnu.tar.xz
-        sha256: 88f28fa9af20594179f85d6df67078dfd6fa93e2f6da5e1e9b0ac4997988ca4f
-    build-commands:
-      - ./install.sh --prefix=/app --without=rust-docs
-    cleanup:
-      - /bin/cargo
-      - /bin/rustc
-      - /bin/rustdoc
-      - /bin/rustfmt
-      - /bin/clippy-driver
-      - /lib/rustlib
-      - /lib/librustc_driver.so
-
-  - name: bun
-    buildsystem: simple
-    # Their CI pins bun 1.4.0 (desktop-package.yml); the lockfile installs
-    # and builds offline against the seeded cache (node-sources.json).
-    sources:
-      - type: archive
-        url: https://github.com/oven-sh/bun/releases/download/bun-v1.4.0/bun-linux-x64.zip
-        sha256: 2d03fb5fb83ac8b567aca0a281b2ce1a1a19d488f56c2968d88c3f25e92fe452
-    build-commands:
-      # flatpak-builder strips the zip's single top dir (bun-linux-x64/);
-      # the exec bit is not guaranteed by zip extraction either
-      - install -Dm755 bun /app/bin/bun
-    cleanup:
-      - /bin/bun
-
   - name: talaria
     buildsystem: simple
     build-options:
@@ -69,11 +37,25 @@ modules:
         url: https://github.com/outcrop-labs/talaria
         tag: v0.1.0
         commit: 3af432bea05560f8b64ec855fef098e480aa3848
+      # rust 1.97.1: desktop/src-tauri/rust-toolchain.toml pins it (edition
+      # 2024 + the tauri `unstable` multiwebview feature). Self-contained
+      # dist tarball; the wrapper dir is auto-stripped on extract.
+      - type: archive
+        dest: rust-dist
+        url: https://static.rust-lang.org/dist/rust-1.97.1-x86_64-unknown-linux-gnu.tar.xz
+        sha256: 88f28fa9af20594179f85d6df67078dfd6fa93e2f6da5e1e9b0ac4997988ca4f
+      # bun 1.4.0: their CI's pin (desktop-package.yml). zip extraction
+      # strips the bun-linux-x64/ wrapper and does not guarantee the
+      # exec bit, hence install -m755 below.
+      - type: archive
+        dest: bun-dist
+        url: https://github.com/oven-sh/bun/releases/download/bun-v1.4.0/bun-linux-x64.zip
+        sha256: 2d03fb5fb83ac8b567aca0a281b2ce1a1a19d488f56c2968d88c3f25e92fe452
       - cargo-sources.json
       - node-sources.json
       - type: inline
         dest: cargo
-        dest-filename: config
+        dest-filename: config.toml
         contents: |
           [source.vendored-sources]
           directory = "cargo/vendor"
@@ -85,6 +67,9 @@ modules:
       - type: file
         path: app.talaria.desktop.metainfo.xml
     build-commands:
+      - ./rust-dist/install.sh --prefix=/run/build/talaria/toolchain --without=rust-docs
+      - install -Dm755 bun-dist/bun /run/build/talaria/toolchain/bin/bun
+      - export PATH=/run/build/talaria/toolchain/bin:$PATH
       # Frontend: vendored in node-sources.json as bun's offline install
       # cache (bun_cache/<name>@<version>@@@1/), consumed via --offline.
       - cd desktop && bun install --frozen-lockfile --offline
