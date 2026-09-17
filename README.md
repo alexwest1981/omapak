@@ -99,6 +99,9 @@ bun run sync-rubric && bun run build-catalog --with-fixtures
 bun run dev
 ```
 
+The dev server runs against live `repo.omapak.org` data. Data flow, script
+reference, and headless-verification gotchas: [web/README.md](web/README.md).
+
 ## License
 
 MIT.
