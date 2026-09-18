@@ -2,35 +2,37 @@ submitter: alexwest1981
 source_repo: https://github.com/alexwest1981/OmarchyTube
 summary: OmarchyTube, a full-screen YouTube client for Omarchy and Hyprland
 description: >-
-  Alex's own app, submitted by its author. OmarchyTube is an Electron client
-  that puts YouTube in a single full-screen window built for Omarchy and
-  Hyprland: a TV/leanback mode for arrow-key navigation, a desktop mode on F2,
-  sign-in through Google's OAuth device flow (a QR code, no password typed
-  into the app), network-level and cosmetic ad blocking, SponsorBlock
-  skipping and Return YouTube Dislike counts. The project publishes no release
-  artifact, so the manifest builds the git tree the way flathub's own
-  Electron-from-source recipe does: npm dependencies and the Electron 44.3.0
-  zip the lockfile pins are both vendored through generated-sources.json, and
-  the build runs with no network access. The app contacts YouTube, the
-  SponsorBlock API and the Return YouTube Dislike API, and nothing else — no
-  telemetry, no analytics.
+  Alex's own app, submitted by its author: an Electron client that puts YouTube
+  in one full-screen window built for Omarchy and Hyprland, with a TV/leanback
+  mode, a desktop mode on F2, sign-in through Google's OAuth device flow (a QR
+  code, never a password typed into the app), network-level and cosmetic ad
+  blocking, SponsorBlock skipping and Return YouTube Dislike counts.
 
   It is built for the 10-foot case on one Hyprland output rather than as a
   desktop browser replacement. Browsing is the app's own grid rather than
-  YouTube's leanback shelves: seven columns of cards on a 1920-wide screen,
-  arrow keys, and the search box on top. Playback is still YouTube's own watch
-  page, which is what keeps the ad skipping, SponsorBlock, dislike counts and
-  the floating back button working. The runtime branch is 25.08
-  and not 26.08 for a measured reason: the build needs
-  org.freedesktop.Sdk.Extension.node24, and the freedesktop node SDK
-  extensions are published up to 25.08 only (checked against flathub —
-  node24//25.08 is the newest branch that exists), so 25.08 is the newest
-  branch this app can build on. The repository ships `node --test` checks that
-  CI runs on every push: every declared npm dependency must be imported
-  somewhere, package.json, LICENSE and the appstream metadata must agree on the
-  licence, the SponsorBlock category labels must be the ones the API names, and
-  no Swedish may be left in the interface — four checks that need nothing
-  installed.
+  YouTube's leanback shelves — seven columns of cards on a 1920-wide screen,
+  arrow keys, and the search box on top — while playback stays on YouTube's own
+  watch page, which is what keeps the ad skipping, SponsorBlock, the dislike
+  counts and the floating back button working.
+
+  Two things a user should know, both deliberate and both pinned by a test.
+  Requests to YouTube carry a TV user agent in TV mode and an X11-Chrome one in
+  desktop mode, with matching Client Hints: Google's device-flow sign-in only
+  opens for something that looks like a TV, and the watch page expects the
+  Chrome it is told it is. The app contacts YouTube, the SponsorBlock API and
+  the Return YouTube Dislike API, and nothing else — no telemetry. The renderer
+  runs with `sandbox` off but contextIsolation on, nodeIntegration off,
+  webSecurity on and Widevine enabled for DRM; the bridge it exposes is four
+  named channels (exit a video, browse home, browse search, play a video) with
+  no file, shell or clipboard access.
+
+  The runtime branch is 25.08 and not 26.08 for a measured reason: the build
+  needs org.freedesktop.Sdk.Extension.node24, those extensions are published up
+  to 25.08 only. `node --test` checks run in CI on every push — dependency,
+  licence
+  and metadata agreement, InnerTube responses parsed against a captured fixture,
+  leanback density, and both user-agent identities pinned so TV mode cannot
+  silently start sending a desktop agent.
 license: MIT
 homepage: https://github.com/alexwest1981/OmarchyTube
 tags: [video, youtube, media]
