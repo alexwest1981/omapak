@@ -22,6 +22,7 @@
       <li>SponsorBlock segment skipping, with the segments marked on the progress bar and an on-screen "unskip" button</li>
       <li>Return YouTube Dislike counts on the player</li>
       <li>Hardware-accelerated video decode (VA-API)</li>
+      <li>Its own browsing grid as the start screen — seven columns of cards at 1920x1080 where the leanback view shows one row of four — with search and arrow-key navigation</li>
     </ul>
     <p>
       The app talks to three services and no others: YouTube, the SponsorBlock API and
@@ -30,6 +31,12 @@
     </p>
   </description>
   <launchable type="desktop-id">io.github.alexwest1981.OmarchyTube.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <image type="source">https://raw.githubusercontent.com/alexwest1981/OmarchyTube/d6c89cc46592ed9fb398cc70f233dbc86278217c/screenshots/browse-1920x1080.png</image>
+      <caption>Search results in the app's own grid: seven columns and three rows at 1920x1080, one card selected.</caption>
+    </screenshot>
+  </screenshots>
   <url type="homepage">https://github.com/alexwest1981/OmarchyTube</url>
   <url type="bugtracker">https://github.com/alexwest1981/OmarchyTube/issues</url>
   <url type="vcs-browser">https://github.com/alexwest1981/OmarchyTube</url>

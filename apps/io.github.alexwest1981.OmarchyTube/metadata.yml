@@ -16,7 +16,11 @@ description: >-
   telemetry, no analytics.
 
   It is built for the 10-foot case on one Hyprland output rather than as a
-  desktop browser replacement. The runtime branch is 25.08
+  desktop browser replacement. Browsing is the app's own grid rather than
+  YouTube's leanback shelves: seven columns of cards on a 1920-wide screen,
+  arrow keys, and the search box on top. Playback is still YouTube's own watch
+  page, which is what keeps the ad skipping, SponsorBlock, dislike counts and
+  the floating back button working. The runtime branch is 25.08
   and not 26.08 for a measured reason: the build needs
   org.freedesktop.Sdk.Extension.node24, and the freedesktop node SDK
   extensions are published up to 25.08 only (checked against flathub —
