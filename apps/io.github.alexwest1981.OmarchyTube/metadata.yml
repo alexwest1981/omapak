@@ -16,14 +16,17 @@ description: >-
   telemetry, no analytics.
 
   It is built for the 10-foot case on one Hyprland output rather than as a
-  desktop browser replacement: a leanback mode driven by the arrow keys, a
-  desktop mode on F2, sign-in by QR device flow so no password is typed into
-  the app, and ad blocking at the network layer. The runtime branch is 25.08
+  desktop browser replacement. The runtime branch is 25.08
   and not 26.08 for a measured reason: the build needs
   org.freedesktop.Sdk.Extension.node24, and the freedesktop node SDK
   extensions are published up to 25.08 only (checked against flathub —
   node24//25.08 is the newest branch that exists), so 25.08 is the newest
-  branch this app can build on.
+  branch this app can build on. The repository ships `node --test` checks that
+  CI runs on every push: every declared npm dependency must be imported
+  somewhere, package.json, LICENSE and the appstream metadata must agree on the
+  licence, the SponsorBlock category labels must be the ones the API names, and
+  no Swedish may be left in the interface — four checks that need nothing
+  installed.
 license: MIT
 homepage: https://github.com/alexwest1981/OmarchyTube
 tags: [video, youtube, media]
