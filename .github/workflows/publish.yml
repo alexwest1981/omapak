@@ -156,11 +156,21 @@ jobs:
             else
               export OMAPAK_TUI_CATCHALL=0
             fi
-            if flatpak-builder --force-clean --disable-rofiles-fuse --user \
+            # The judge caps builds at OMAPAK_BUILD_TIMEOUT_SECS (default
+            # 5400); publish's bare flatpak-builder had no cap, so a hung
+            # build stalls the whole serialized repo-publish queue forever
+            # (2026-09-17: a silent 2h build with no heartbeat blocked
+            # every app behind it). Same default, env-overridable.
+            if timeout --kill-after=60 "${OMAPAK_PUBLISH_TIMEOUT_SECS:-5400}" \
+                flatpak-builder --force-clean --disable-rofiles-fuse --user \
                 --gpg-sign="$keyid" \
                 --repo=build-repo ".flatpak-builder/$name" "$manifest" >"/tmp/build-$name.log" 2>&1; then
               tail -5 "/tmp/build-$name.log"
             else
+              rc=$?
+              if [ "$rc" -eq 124 ]; then
+                echo "flatpak-builder exceeded OMAPAK_PUBLISH_TIMEOUT_SECS (${OMAPAK_PUBLISH_TIMEOUT_SECS:-5400}s) and was killed" >> "/tmp/build-$name.log"
+              fi
               tail -30 "/tmp/build-$name.log"
               failed="$failed $name"
             fi
