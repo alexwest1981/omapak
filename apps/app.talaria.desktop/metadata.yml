@@ -6,9 +6,9 @@ description: >-
   is compiled offline from a vendored bun cache (node-sources.json) and the
   Tauri v2 shell from vendored crates (cargo-sources.json), linked against
   the WebKitGTK 4.1 that org.gnome.Platform//50 carries. Rust 1.97.1 and
-  bun 1.4.0 enter as sha-pinned source modules. custom-protocol.patch makes
-  cargo --release embed the launcher; without it the webview loads
-  localhost:5290. Store listing and homepage follow talariaworks.ai.
+  bun 1.4.0 enter as sha-pinned source modules. custom-protocol.patch plus
+  cargo --features custom-protocol embed the launcher; without that the
+  webview loads localhost:5290. Store listing and homepage follow talariaworks.ai.
 license: MIT
 homepage: https://talariaworks.ai
 tags: [business, utility]

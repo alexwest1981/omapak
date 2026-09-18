@@ -70,9 +70,9 @@ modules:
       - type: file
         path: app.talaria.desktop.metainfo.xml
       # Tauri treats missing custom-protocol as cfg(dev) even for --release,
-      # so cargo build would load http://localhost:5290. Upstream fix is
-      # default-on in outcrop-labs/talaria desktop/flatpak-custom-protocol;
-      # this patch is the same change on v0.1.0 until the next tag.
+      # so cargo build would load http://localhost:5290. Upstream defines
+      # the feature in outcrop-labs/talaria#396; this patch adds it on
+      # v0.1.0 until the next tag.
       - type: patch
         path: custom-protocol.patch
     build-commands:
@@ -82,9 +82,9 @@ modules:
       # cache (bun_cache/<name>@<version>@@@1/), consumed via --offline.
       - cd desktop && bun install --frozen-lockfile --offline
       - cd desktop && bun run build:vite
-      # Shell: generate_context! embeds ../dist. custom-protocol.patch makes
-      # cargo --release a production webview.
-      - cd desktop/src-tauri && cargo build --release --offline --locked
+      # Shell: generate_context! embeds ../dist. --features custom-protocol
+      # makes cargo --release a production webview.
+      - cd desktop/src-tauri && cargo build --release --offline --locked --features custom-protocol
       - install -Dm755 desktop/src-tauri/target/release/talaria-desktop /app/bin/talaria-desktop
       # Icons: flatpak looks these up by app id, not binary name.
       - install -Dm644 desktop/src-tauri/icons/32x32.png /app/share/icons/hicolor/32x32/apps/app.talaria.desktop.png
