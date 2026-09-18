@@ -1,0 +1,38 @@
+id: me.chocolateimage.graphics-creator
+runtime: org.kde.Platform
+runtime-version: "6.11"
+sdk: org.kde.Sdk
+command: graphics-creator
+finish-args:
+  - --device=dri
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --socket=pulseaudio
+  - --filesystem=host
+
+modules:
+  - name: qt-advanced-docking-system
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DADS_VERSION=5.0.0
+    sources:
+      - type: git
+        url: https://github.com/githubuser0xFFFF/Qt-Advanced-Docking-System.git
+        tag: 5.0.0
+        commit: 433b0c90b44d8f17d059204176ff6e0d6d3783e3
+
+  - name: graphics-creator
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DUPDATE_CHECK=OFF
+    sources:
+      - type: archive
+        # git tag+commit tripped a flatpak-builder 1.4.11 edge even with
+        # matching shas; archive-by-commit is deterministic
+        url: https://github.com/chocolateimage/graphics-creator/archive/bb13999325a4d9fa73c53a4c6091cc9ac019ccaa.tar.gz
+        sha256: 28a57c955f7eccb80e2c89ef25f76bd46f5dd2f89f7db4c41a3e6bc2ea4483cf
+      - type: file
+        path: me.chocolateimage.graphics-creator.metainfo.xml
+    post-install:
+      - install -Dm644 -t ${FLATPAK_DEST}/share/metainfo me.chocolateimage.graphics-creator.metainfo.xml
