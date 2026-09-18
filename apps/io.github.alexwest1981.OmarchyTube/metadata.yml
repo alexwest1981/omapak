@@ -14,6 +14,16 @@ description: >-
   the build runs with no network access. The app contacts YouTube, the
   SponsorBlock API and the Return YouTube Dislike API, and nothing else — no
   telemetry, no analytics.
+
+  It is built for the 10-foot case on one Hyprland output rather than as a
+  desktop browser replacement: a leanback mode driven by the arrow keys, a
+  desktop mode on F2, sign-in by QR device flow so no password is typed into
+  the app, and ad blocking at the network layer. The runtime branch is 25.08
+  and not 26.08 for a measured reason: the build needs
+  org.freedesktop.Sdk.Extension.node24, and the freedesktop node SDK
+  extensions are published up to 25.08 only (checked against flathub —
+  node24//25.08 is the newest branch that exists), so 25.08 is the newest
+  branch this app can build on.
 license: MIT
 homepage: https://github.com/alexwest1981/OmarchyTube
 tags: [video, youtube, media]
