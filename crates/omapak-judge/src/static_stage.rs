@@ -87,6 +87,19 @@ pub fn run(app_dir: &Path, source_dir: Option<&Path>) -> Result<StaticReport> {
             kind: "metadata".into(),
             detail: "no metadata.yml — the app will not appear in the site catalog".into(),
         });
+    } else if has_unparsable_metadata(app_dir) {
+        // The quiet case: the file is there, so `metadata_present` is true and
+        // nothing gates; but the judge reads it through `load_metadata`, which
+        // returns None on a YAML error — so the app was scored with no summary,
+        // description, license or tags at all, and the report says nothing
+        // about it. The catalog generator drops the app in the same situation.
+        report.advisories.push(StaticAdvisory {
+            kind: "metadata".into(),
+            detail: "metadata.yml does not parse — the judge sees no summary, \
+                     description, license or tags, and the site catalog skips \
+                     the app"
+                .into(),
+        });
     }
     let appstream = find_appstream(app_dir);
     report.appstream_present = appstream.is_some();
@@ -100,6 +113,13 @@ pub fn run(app_dir: &Path, source_dir: Option<&Path>) -> Result<StaticReport> {
 
     report.source_stats = Some(collect_stats(app_dir, source_dir));
     Ok(report)
+}
+
+/// True when `metadata.yml` is present but does not parse. Kept as its own
+/// function so the quiet case has a name: a file that exists, passes every
+/// gate, and silently delivers nothing to the judge.
+fn has_unparsable_metadata(app_dir: &Path) -> bool {
+    app_dir.join("metadata.yml").is_file() && omapak_core::load_metadata(app_dir).is_none()
 }
 
 fn find_appstream(app_dir: &Path) -> Option<std::path::PathBuf> {
@@ -359,5 +379,37 @@ mod tests {
         )
         .unwrap();
         assert_eq!(find_duplicate(&c), None);
+    }
+
+    /// The shape that hit a real submission (io.github.alexwest1981.NovaCut,
+    /// 2026-09-18): a folded description whose continuation lines lost their
+    /// indentation, so they sit at column 0 and the YAML does not parse. The
+    /// app was scored with no summary, description, license or tags, and
+    /// nothing anywhere said so.
+    #[test]
+    fn flags_metadata_that_exists_but_does_not_parse() {
+        let dir = tempfile::tempdir().unwrap();
+        let app = dir.path().join("io.example.Broken");
+        std::fs::create_dir_all(&app).unwrap();
+        std::fs::write(
+            app.join("metadata.yml"),
+            "submitter: x\nsource_repo: https://github.com/Someone/broken\nsummary: s\nlicense: MIT\n\
+             tags: [utility]\ndescription: >-\n  A folded description.\nAnd a line that lost its indent.\n",
+        )
+        .unwrap();
+        assert!(has_unparsable_metadata(&app));
+
+        // …and the same file with the indentation intact is not flagged.
+        std::fs::write(
+            app.join("metadata.yml"),
+            "submitter: x\nsource_repo: https://github.com/Someone/broken\nsummary: s\nlicense: MIT\n\
+             tags: [utility]\ndescription: >-\n  A folded description.\n  And a line that kept it.\n",
+        )
+        .unwrap();
+        assert!(!has_unparsable_metadata(&app));
+
+        // No file at all is the other advisory's business, not this one's.
+        std::fs::remove_file(app.join("metadata.yml")).unwrap();
+        assert!(!has_unparsable_metadata(&app));
     }
 }
