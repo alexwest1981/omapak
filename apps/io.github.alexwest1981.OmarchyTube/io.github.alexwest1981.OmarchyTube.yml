@@ -76,7 +76,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/alexwest1981/OmarchyTube
-        commit: 562d58154c220f525a8a554270f027076be07252
+        commit: f7381006eb9ce943945cf6d4398d518a296a6ad9
         dest: omarchy-tube
       # npm dependencies + the Electron zip, hashes included.
       - generated-sources.json
