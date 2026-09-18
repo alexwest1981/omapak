@@ -69,6 +69,12 @@ modules:
         path: app.talaria.desktop.desktop
       - type: file
         path: app.talaria.desktop.metainfo.xml
+      # Tauri treats missing custom-protocol as cfg(dev) even for --release,
+      # so cargo build would load http://localhost:5290. Upstream fix is
+      # default-on in outcrop-labs/talaria desktop/flatpak-custom-protocol;
+      # this patch is the same change on v0.1.0 until the next tag.
+      - type: patch
+        path: custom-protocol.patch
     build-commands:
       - ./rust-dist/install.sh --prefix=/run/build/talaria/toolchain --without=rust-docs
       - install -Dm755 bun-dist/bun /run/build/talaria/toolchain/bin/bun
@@ -76,8 +82,8 @@ modules:
       # cache (bun_cache/<name>@<version>@@@1/), consumed via --offline.
       - cd desktop && bun install --frozen-lockfile --offline
       - cd desktop && bun run build:vite
-      # Shell: the tauri CLI is a wrapper; tauri-build + generate_context!
-      # embed ../dist at compile time, so a plain cargo build suffices.
+      # Shell: generate_context! embeds ../dist. custom-protocol.patch makes
+      # cargo --release a production webview.
       - cd desktop/src-tauri && cargo build --release --offline --locked
       - install -Dm755 desktop/src-tauri/target/release/talaria-desktop /app/bin/talaria-desktop
       # Icons: flatpak looks these up by app id, not binary name.
@@ -88,3 +94,4 @@ modules:
       - install -Dm644 app.talaria.desktop.desktop /app/share/applications/app.talaria.desktop.desktop
       - install -Dm644 app.talaria.desktop.metainfo.xml /app/share/metainfo/app.talaria.desktop.metainfo.xml
       - desktop-file-validate /app/share/applications/app.talaria.desktop.desktop
+      - appstreamcli validate --no-net /app/share/metainfo/app.talaria.desktop.metainfo.xml
