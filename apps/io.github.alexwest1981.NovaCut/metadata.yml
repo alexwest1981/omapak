@@ -11,3 +11,5 @@ description: >-
   shell out to the ffmpeg and ffprobe that org.freedesktop.Platform 25.08 already
   ships, so nothing is bundled for them. Built from source at 2aedbb8; npm
   dependencies and the Electron 44.3.0 zip come from generated-sources.json.
+The repository ships a node:test suite (`npm test`) that CI runs on every
+push, together with a syntax check of every script.

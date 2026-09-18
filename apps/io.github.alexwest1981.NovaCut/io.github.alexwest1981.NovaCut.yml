@@ -70,12 +70,13 @@ modules:
       # Electron's own installer here instead, so the binary is unpacked from
       # the vendored cache at build time and the shipped tree is complete.
       - node novacut/node_modules/electron/install.js
-      # bin/whisper-cli is linked against libwhisper.so.1 and libggml*.so.0 that
-      # exist only in the author's local build tree; they are not in the
-      # repository, so the binary cannot load inside the sandbox. Leaving it out
-      # makes the captions feature report "whisper-cli binär saknas i bin/"
-      # instead of dying on a missing shared object. Shipping transcription
-      # means packaging whisper.cpp plus the ~75 MB ggml model — a follow-up.
+      # The repository no longer commits bin/whisper-cli: the prebuilt binary
+      # was linked against libwhisper.so.1/libggml*.so.0 that live only in the
+      # author's build tree, so it could not load anywhere else — the captions
+      # feature reports "whisper-cli binär saknas i bin/" instead of dying on a
+      # missing shared object. Shipping transcription means packaging whisper.cpp
+      # plus the ~75 MB ggml model — a follow-up. The rm stays: a local build
+      # tree may still carry the file.
       - rm -f novacut/bin/whisper-cli
       - cp -r novacut ${FLATPAK_DEST}/novacut
       - install -Dm755 novacut.sh ${FLATPAK_DEST}/bin/novacut
@@ -87,7 +88,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/alexwest1981/NovaCut
-        commit: 2aedbb8dcdf66603b2d98527579521387a0bb574
+        commit: 833863c8d4b2bfdc1fd686cfe1bd9acbeaa2f32f
         dest: novacut
       # npm dependencies + the Electron zip, hashes included.
       - generated-sources.json
