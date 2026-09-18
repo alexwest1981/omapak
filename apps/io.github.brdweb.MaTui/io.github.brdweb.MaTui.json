@@ -84,8 +84,8 @@
                 {
                     "type": "git",
                     "url": "https://github.com/brdweb/ma-tui.git",
-                    "tag": "v0.9.1",
-                    "commit": "de72d6d78415c89ed741179f754d33cde294e016"
+                    "tag": "v0.9.3",
+                    "commit": "4cd3b229a5aefa47f37404a2e5c3e672cdb3fcc3"
                 },
                 {
                     "type": "file",
