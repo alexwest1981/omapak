@@ -106,7 +106,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/alexwest1981/OmaScribe
-        commit: b0360330c5873c11c4fa42e97f0d3a8e8fc19800
+        commit: c71a4d6a06035179b342f573f99869be168f0e44
       - type: file
         path: omascribe.sh
       - type: file

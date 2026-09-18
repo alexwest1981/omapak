@@ -12,8 +12,9 @@ description: >-
   dependencies from python3-requirements.json, generated with
   flatpak-pip-generator against the same runtime the sandbox runs. Dictation is
   the one advertised feature that is not bundled: it needs the optional
-  faster-whisper dependency, which is not in the project's declared
-  dependencies, so without it the dictation button produces placeholder text.
+  faster-whisper package, which is not in the project's declared dependencies,
+  and without it the dictation button says so and transcribes nothing rather
+  than inventing a line of text.
   That is stated in the metainfo and tracked as follow-up work rather than
   quietly shipped.
 
