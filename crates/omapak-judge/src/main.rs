@@ -112,8 +112,21 @@ fn main() -> Result<()> {
         None
     };
 
+    // Screenshots exist either as appstream metadata (the store path the
+    // site renders) or as the dynamic stage's own captures. The prompt
+    // carries the fact, never the pixels — so this stops the ui_ux rubric
+    // deducting for "no screenshots" on a submission that ships them.
+    let has_screenshots = dynamic.as_ref().is_some_and(|d| !d.screenshots.is_empty())
+        || static_stage::appstream_has_screenshots(app_dir);
+
     let config = judge_stage::config_from_env()?;
-    let (rubric, judge_info) = finish_judging(&cli, &static_report, build_ok, config.as_ref())?;
+    let (rubric, judge_info) = finish_judging(
+        &cli,
+        &static_report,
+        build_ok,
+        has_screenshots,
+        config.as_ref(),
+    )?;
 
     // Proprietary submissions get a web legitimacy pass: does this thing
     // exist, is the channel real, is anything known-bad. Published with
@@ -215,6 +228,7 @@ fn finish_judging(
     cli: &Cli,
     static_report: &StaticReport,
     build_ok: bool,
+    has_screenshots: bool,
     config: Option<&judge_stage::JudgeConfig>,
 ) -> Result<(Option<Rubric>, Option<omapak_core::JudgeInfo>)> {
     let Some(config) = config else {
@@ -247,7 +261,7 @@ fn finish_judging(
         manifest_summary: manifest_summary.as_deref(),
         static_findings: static_findings.as_deref(),
         source_digest: source_digest.as_deref(),
-        has_screenshots: false,
+        has_screenshots,
         build_ok,
     };
 

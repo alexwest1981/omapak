@@ -114,6 +114,20 @@ fn find_appstream(app_dir: &Path) -> Option<std::path::PathBuf> {
         .map(|e| e.path().to_path_buf())
 }
 
+/// True when the app's appstream metadata declares at least one screenshot.
+/// The judge prompt tells the model whether screenshots exist — a hardcoded
+/// "no" asked the wrong question for every app that ships any — and the
+/// ui_ux rubric scores the metadata path differently when they do.
+pub fn appstream_has_screenshots(app_dir: &Path) -> bool {
+    let Some(path) = find_appstream(app_dir) else {
+        return false;
+    };
+    let Ok(xml) = std::fs::read_to_string(&path) else {
+        return false;
+    };
+    xml.contains("<screenshots") && xml.contains("<image")
+}
+
 /// Canonical identity of an app's upstream project: the submitter's
 /// declared source_repo, normalized. Deliberately NOT derived from
 /// manifest source URLs — those include fonts, vendored tarballs and
@@ -308,6 +322,29 @@ fn git_signals(dir: &Path) -> (Option<u64>, Option<String>) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn reads_screenshots_from_appstream_metadata() {
+        let dir = tempfile::tempdir().unwrap();
+        let file = dir.path().join("io.example.Alpha.metainfo.xml");
+        let write = |body: &str| std::fs::write(&file, body).unwrap();
+
+        write(
+            "<component><screenshots><image>https://example.com/1.png</image></screenshots></component>",
+        );
+        assert!(appstream_has_screenshots(dir.path()));
+
+        // An empty element is not evidence of a screenshot.
+        write("<component><screenshots/></component>");
+        assert!(!appstream_has_screenshots(dir.path()));
+
+        write("<component><description><p>no shots here</p></description></component>");
+        assert!(!appstream_has_screenshots(dir.path()));
+
+        // No appstream metadata at all.
+        std::fs::remove_file(&file).unwrap();
+        assert!(!appstream_has_screenshots(dir.path()));
+    }
 
     #[test]
     fn normalizes_repo_identity_across_spellings() {

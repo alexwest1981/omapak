@@ -99,13 +99,20 @@ jobs:
           sudo install -m755 deploy/appstreamcli-catchall.sh /usr/local/bin/appstreamcli
           sudo install -Dm644 assets/icons/tui.png /usr/local/share/omapak/tui.png
 
-      - name: Changed app dirs
-        if: github.event_name == 'pull_request'
+      # One list drives both the judge loop and the source clones below. Two
+      # lists is how a push run came to judge every app while cloning no
+      # sources: every report it published for a public-source app said the
+      # code "was not provided for audit".
+      - name: App dirs to judge
         run: |
-          {
-            git diff --name-only origin/main...HEAD \
-              | grep '^apps/' | cut -d/ -f1-2 | sort -u || true
-          } | tee changed.txt
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            {
+              git diff --name-only origin/main...HEAD \
+                | grep '^apps/' | cut -d/ -f1-2 | sort -u || true
+            }
+          else
+            find apps -mindepth 1 -maxdepth 1 -type d | sort
+          fi | tee apps.txt
 
       - name: Cache flatpak runtimes
         uses: actions/cache@v4
@@ -119,8 +126,8 @@ jobs:
       # disk and killed the judge mid-step.
       - name: Install runtimes
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ] && [ -s changed.txt ]; then
-            ./deploy/install-runtimes.sh $(cat changed.txt)
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ -s apps.txt ]; then
+            ./deploy/install-runtimes.sh $(cat apps.txt)
           else
             ./deploy/install-runtimes.sh
           fi
@@ -131,11 +138,7 @@ jobs:
       - name: Judge - static + build (no agent keys in this job)
         run: |
           echo "disk free at judge start: $(df -h / | awk 'NR==2{print $4}')"
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            APPS=$(cat changed.txt)
-          else
-            APPS=$(find apps -mindepth 1 -maxdepth 1 -type d)
-          fi
+          APPS=$(cat apps.txt)
           for app in $APPS; do
             [ -d "$app" ] || continue
             echo "::group::judge $app"
@@ -143,15 +146,18 @@ jobs:
             echo "::endgroup::"
           done
 
+      # Runs on push too: judge-report.yml judges and publishes on both
+      # events, so a source-less push run would overwrite the sourced report
+      # in R2 with one that describes the pipeline instead of the app.
       - name: Clone upstream sources for the digest
-        if: "!cancelled() && github.event_name == 'pull_request'"
+        if: "!cancelled()"
         run: |
           while read -r app; do
             [ -f "$app/metadata.yml" ] || continue
             repo=$(grep -m1 '^source_repo:' "$app/metadata.yml" | sed 's/^source_repo:[[:space:]]*//')
             [ -n "$repo" ] || continue
             git clone --depth 100 "$repo" "sources/$(basename "$app")" || echo "::warning::clone failed for $repo"
-          done < changed.txt
+          done < apps.txt
 
       # !cancelled(): a red judge run means an app failed a gate/build —
       # exactly when the partial report (with the reason) must reach

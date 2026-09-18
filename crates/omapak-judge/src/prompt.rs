@@ -73,6 +73,19 @@ pub fn build_user_prompt(inputs: &JudgeInputs) -> String {
     }
     if let Some(d) = inputs.source_digest {
         p.push_str(&format!("== Source digest ==\n{}\n\n", d));
+    } else if inputs.metadata.map(|m| m.source_access).unwrap_or_default()
+        != omapak_core::SourceAccess::Proprietary
+    {
+        // A public submission whose clone did not happen (or failed) is not a
+        // proprietary one, and the closed-source text below asserted exactly
+        // that for every app in any run without a digest — a report that
+        // described the pipeline instead of the submission.
+        p.push_str(
+            "== Source availability ==\nThis submission declares public source, but no source \
+digest was available to this run. Judge the packaging, appstream metadata and provenance you can \
+see, and state plainly that the code could not be read in this run. Do not call the submission \
+closed source and do not speculate about hidden behavior.\n\n",
+        );
     } else {
         p.push_str(
             "== Source availability ==\nNo source digest was provided (proprietary \
@@ -99,5 +112,58 @@ fn truncate(s: &str, max: usize) -> String {
             cut -= 1;
         }
         format!("{}\n[truncated]", &s[..cut])
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A submission dir carrying only metadata.yml, so the test reads it the
+    /// way the judge does (`load_metadata`) instead of building the struct.
+    fn metadata(extra: &str) -> (tempfile::TempDir, omapak_core::Metadata) {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(
+            dir.path().join("metadata.yml"),
+            format!(
+                "submitter: alex\nsource_repo: https://github.com/example/app\nsummary: a thing\n{extra}"
+            ),
+        )
+        .unwrap();
+        let meta = omapak_core::load_metadata(dir.path()).unwrap();
+        (dir, meta)
+    }
+
+    #[test]
+    fn public_source_without_a_digest_is_not_described_as_proprietary() {
+        let (_dir, meta) = metadata("");
+        let prompt = build_user_prompt(&JudgeInputs {
+            app_id: "io.example.Alpha",
+            metadata: Some(&meta),
+            manifest_summary: None,
+            static_findings: None,
+            source_digest: None,
+            has_screenshots: true,
+            build_ok: true,
+        });
+        assert!(prompt.contains("declares public source"), "{prompt}");
+        assert!(!prompt.contains("proprietary"), "{prompt}");
+        assert!(prompt.contains("Screenshots provided: yes"), "{prompt}");
+    }
+
+    #[test]
+    fn proprietary_source_keeps_the_closed_source_guidance() {
+        let (_dir, meta) = metadata("source_access: proprietary\n");
+        let prompt = build_user_prompt(&JudgeInputs {
+            app_id: "io.example.Alpha",
+            metadata: Some(&meta),
+            manifest_summary: None,
+            static_findings: None,
+            source_digest: None,
+            has_screenshots: false,
+            build_ok: true,
+        });
+        assert!(prompt.contains("proprietary submission"), "{prompt}");
+        assert!(prompt.contains("Screenshots provided: no"), "{prompt}");
     }
 }
