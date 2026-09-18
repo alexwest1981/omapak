@@ -42,7 +42,7 @@ export interface StaticReport {
     runtime?: string;
     sdk?: string;
     finish_args?: string[];
-    modules?: { name: string; sources?: { url?: string; pinned?: string }[] }[];
+    modules?: { name: string; sources?: { url?: string; pinned?: string; kind?: string; path?: string }[] }[];
     command?: string;
   };
   metadata_present: boolean;
