@@ -59,11 +59,11 @@
   <screenshots>
     <screenshot type="default">
       <caption>The project hub: new-project formats, recent projects and the template wizard</caption>
-      <image type="source" width="1280" height="720">https://raw.githubusercontent.com/alexwest1981/NovaCut/a0367f8f7aa855b7e06f1bf2ec1f63e83cb4acee/screenshots/project-hub.png</image>
+      <image type="source" width="1280" height="720">https://raw.githubusercontent.com/alexwest1981/NovaCut/26e9997a1a9f0e7f59d8e0e6574ec6dc6f2e7257/screenshots/project-hub.png</image>
     </screenshot>
     <screenshot type="default">
-      <caption>Editing a project: media browser, live preview frame, video clips and an audio waveform on the magnetic timeline, and the clip inspector</caption>
-      <image type="source" width="1896" height="1030">https://raw.githubusercontent.com/alexwest1981/NovaCut/a0367f8f7aa855b7e06f1bf2ec1f63e83cb4acee/screenshots/editor.png</image>
+      <caption>A vertical TikTok-format edit: media browser, live preview with a text overlay, two clips on the magnetic timeline and the clip inspector</caption>
+      <image type="source" width="1280" height="720">https://raw.githubusercontent.com/alexwest1981/NovaCut/26e9997a1a9f0e7f59d8e0e6574ec6dc6f2e7257/screenshots/editor.png</image>
     </screenshot>
   </screenshots>
   <releases>
