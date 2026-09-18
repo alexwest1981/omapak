@@ -88,7 +88,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/alexwest1981/NovaCut
-        commit: 833863c8d4b2bfdc1fd686cfe1bd9acbeaa2f32f
+        commit: a0367f8f7aa855b7e06f1bf2ec1f63e83cb4acee
         dest: novacut
       # npm dependencies + the Electron zip, hashes included.
       - generated-sources.json

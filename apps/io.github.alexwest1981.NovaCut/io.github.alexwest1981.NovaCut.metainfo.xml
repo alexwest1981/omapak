@@ -59,11 +59,11 @@
   <screenshots>
     <screenshot type="default">
       <caption>The project hub: new-project formats, recent projects and the template wizard</caption>
-      <image type="source" width="1280" height="720">https://raw.githubusercontent.com/alexwest1981/NovaCut/833863c8d4b2bfdc1fd686cfe1bd9acbeaa2f32f/screenshots/project-hub.png</image>
+      <image type="source" width="1280" height="720">https://raw.githubusercontent.com/alexwest1981/NovaCut/a0367f8f7aa855b7e06f1bf2ec1f63e83cb4acee/screenshots/project-hub.png</image>
     </screenshot>
     <screenshot type="default">
-      <caption>Editing: media panel, live preview, the magnetic multi-track timeline and the properties inspector</caption>
-      <image type="source" width="1280" height="720">https://raw.githubusercontent.com/alexwest1981/NovaCut/833863c8d4b2bfdc1fd686cfe1bd9acbeaa2f32f/screenshots/editor.png</image>
+      <caption>Editing a project: media browser, live preview frame, video clips and an audio waveform on the magnetic timeline, and the clip inspector</caption>
+      <image type="source" width="1896" height="1030">https://raw.githubusercontent.com/alexwest1981/NovaCut/a0367f8f7aa855b7e06f1bf2ec1f63e83cb4acee/screenshots/editor.png</image>
     </screenshot>
   </screenshots>
   <releases>
