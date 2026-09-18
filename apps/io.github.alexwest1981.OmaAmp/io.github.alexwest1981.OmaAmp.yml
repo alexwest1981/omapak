@@ -72,11 +72,20 @@ modules:
     config-opts:
       - --disable-static
     sources:
+      # PortAudio publishes its release tarball itself (with a generated
+      # configure). The GitHub archive URL for the same tag answered HTTP 504
+      # on two consecutive judge runs (2026-09-18 12:47Z and 12:56Z,
+      # "Failed to download sources: module portaudio"), which fails the build
+      # gate and costs the app its packaging score; files.portaudio.com is the
+      # upstream release artefact and does not go through GitHub's codeload.
       - type: archive
-        url: https://github.com/PortAudio/portaudio/archive/refs/tags/v19.7.0.tar.gz
-        sha256: 5af29ba58bbdbb7bbcefaaecc77ec8fc413f0db6f4c4e286c40c3e1b83174fa0
+        url: https://files.portaudio.com/archives/pa_stable_v190700_20210406.tgz
+        sha256: 47efbf42c77c19a05d22e627d42873e991ec0c1357219c0d74ce6a2948cb2def
+        # Still watches the upstream tags: the tarball is the release for
+        # v19.7.0, so a new tag means a new release artefact to fetch by hand.
         x-checker-data:
           type: git
+          url: https://github.com/PortAudio/portaudio.git
           tag-pattern: ^v([\d.]+)$
           is-main-source: true
 
