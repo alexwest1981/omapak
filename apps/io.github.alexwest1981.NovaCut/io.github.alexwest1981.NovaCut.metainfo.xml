@@ -59,11 +59,15 @@
   <screenshots>
     <screenshot type="default">
       <caption>The project hub: new-project formats, recent projects and the template wizard</caption>
-      <image type="source" width="1280" height="720">https://raw.githubusercontent.com/alexwest1981/NovaCut/7bc5b50cbccaf141d0a8f47457769fb1b9dbf7af/screenshots/project-hub.png</image>
+      <image type="source" width="1280" height="720">https://raw.githubusercontent.com/alexwest1981/NovaCut/ab0af3421af97487f88cf51dd60b57b0bcf48bba/screenshots/project-hub.png</image>
     </screenshot>
     <screenshot type="default">
       <caption>A vertical TikTok-format edit: media browser, live preview with a text overlay, two clips on the magnetic timeline and the clip inspector</caption>
-      <image type="source" width="1280" height="720">https://raw.githubusercontent.com/alexwest1981/NovaCut/7bc5b50cbccaf141d0a8f47457769fb1b9dbf7af/screenshots/editor.png</image>
+      <image type="source" width="1280" height="720">https://raw.githubusercontent.com/alexwest1981/NovaCut/ab0af3421af97487f88cf51dd60b57b0bcf48bba/screenshots/editor.png</image>
+    </screenshot>
+    <screenshot type="default">
+      <caption>The Text Studio: text styles and templates previewed in the sixteen caption and title faces the app bundles</caption>
+      <image type="source" width="1276" height="670">https://raw.githubusercontent.com/alexwest1981/NovaCut/ab0af3421af97487f88cf51dd60b57b0bcf48bba/screenshots/text-studio.png</image>
     </screenshot>
   </screenshots>
   <releases>
