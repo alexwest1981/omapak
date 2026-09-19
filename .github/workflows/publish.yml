@@ -173,16 +173,31 @@ jobs:
             changed=$(git diff --name-only "$base" HEAD -- apps/ | cut -d/ -f2 | sort -u)
             echo "apps changed since $base: ${changed:-<none>}"
           fi
-          # Exports go straight into the restored live repo (no scratch
-          # repo): only changed apps reach flatpak-builder, so the old
-          # hazard — the compile cache making it reuse a commit whose
-          # objects never reached R2 — cannot trigger; a changed app
-          # always produces a fresh commit, and exporting in place keeps
-          # the appstream branch accumulating entries from skipped apps.
+          # Exports target a scratch repo. The live repo can't be an
+          # export target: every export regenerates the appstream branch
+          # by walking every ref and diffing against the existing branch,
+          # and the live appstream ref points at a commit whose tree never
+          # fully landed in R2 (missing root dirtree, HTTP 404 — two full
+          # runs died on that read, 2026-09-19). Scratch never reads it.
+          rm -rf build-repo
+          mkdir -p build-repo/objects build-repo/refs/heads build-repo/refs/remotes build-repo/refs/mirrors
+          printf '[core]\nrepo_version=1\nmode=archive-z2\n' > build-repo/config
+          # Seed every omapak app ref plus its objects (hardlinked) so
+          # appstream regeneration covers SKIPPED apps too: xa.appdata
+          # lives in commit metadata and icons are small filez — both
+          # restored from R2. Flathub mirror refs are not seeded; their
+          # metadata-only trees only generate "No appstream data" noise.
+          for reffile in $(find repo/refs/heads/app -type f 2>/dev/null); do
+            name=$(echo "$reffile" | cut -d/ -f5)
+            [ -d "apps/$name" ] || continue
+            mkdir -p "$(dirname "build-repo/${reffile#repo/}")"
+            cp "$reffile" "build-repo/${reffile#repo/}"
+          done
+          cp -al repo/objects/. build-repo/objects/ 2>/dev/null || cp -a repo/objects/. build-repo/objects/
           failed=""
           built=""
           built_refs=""
-          refs_seen=$(find repo/refs/heads -type f -exec sha256sum {} + | sort)
+          refs_seen=$(find build-repo/refs/heads -type f -exec sha256sum {} + | sort)
           for app in apps/*/; do
             name=$(basename "$app")
             # Unchanged since the last good publish AND its published ref
@@ -223,13 +238,13 @@ jobs:
             if timeout --kill-after=60 "${OMAPAK_PUBLISH_TIMEOUT_SECS:-5400}" \
                 flatpak-builder --force-clean --disable-rofiles-fuse --user \
                 --gpg-sign="$keyid" \
-                --repo=repo ".flatpak-builder/$name" "$manifest" >"/tmp/build-$name.log" 2>&1; then
+                --repo=build-repo ".flatpak-builder/$name" "$manifest" >"/tmp/build-$name.log" 2>&1; then
               tail -5 "/tmp/build-$name.log"
-              # Track the refs this export wrote for the re-stamp pass
-              # (heads diff, not ostree refs — restored flathub refs
-              # share the app/ prefix and must not be re-stamped).
-              refs_now=$(find repo/refs/heads -type f -exec sha256sum {} + | sort)
-              built_refs="$built_refs $(comm -13 <(echo "$refs_seen") <(echo "$refs_now") | awk '{print $2}' | sed 's|^repo/refs/heads/||')"
+              # Track the refs this export wrote for the re-stamp pass —
+              # app refs only; the appstream branches are restamped
+              # explicitly below.
+              refs_now=$(find build-repo/refs/heads -type f -exec sha256sum {} + | sort)
+              built_refs="$built_refs $(comm -13 <(echo "$refs_seen") <(echo "$refs_now") | awk '{print $2}' | sed 's|^build-repo/refs/heads/||' | grep '^app/')"
               refs_seen="$refs_now"
               built="$built $name"
             else
@@ -242,18 +257,24 @@ jobs:
             fi
             echo "::endgroup::"
           done
+          # Fold this run's refs — built apps plus the freshly regenerated
+          # appstream branches — into the live repo. pull-local never
+          # regenerates anything, so the broken historical appstream ref
+          # is simply replaced by the scratch branch.
+          ostree pull-local --repo=repo build-repo
           # flatpak-builder 1.4.11 has no --timestamp passthrough: it shells
           # out to a bare `flatpak build-export`, which stamps the commit
           # with the appstream file's mtime. The .flatpak-builder cache can
           # keep that mtime older than commits clients already hold, and
           # flatpak then refuses the pull ("Update is older than current
           # version", 2026-09-19: talaria + sonix both hit it). Re-stamp
-          # every ref written this run — app refs and the appstream branch —
-          # with the current time so each publish is strictly newer than
-          # anything installed. --force: same-repo restamp looks like a
-          # no-op without it.
+          # every ref written this run — app refs and the appstream
+          # branches — with the current time so each publish is strictly
+          # newer than anything installed. --force: a same-repo restamp
+          # looks like a no-op without it.
           if [ -n "$built_refs" ]; then
-            for ref in $built_refs appstream/x86_64; do
+            for ref in $built_refs appstream/x86_64 appstream2/x86_64; do
+              [ -f "repo/refs/heads/$ref" ] || continue
               flatpak build-commit-from --timestamp=NOW --force --no-update-summary \
                 --gpg-sign="$keyid" --src-repo=repo repo "$ref"
             done
