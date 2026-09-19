@@ -16,8 +16,8 @@ Usage: pull-from-r2.py [repo-dir]
 import os
 import random
 import sys
-import time
-from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+
 
 import boto3
 from botocore.config import Config
@@ -77,4 +77,17 @@ with ThreadPoolExecutor(max_workers=16) as pool:
             print(f"  {failed} failures so far", flush=True)
 
 print(f"restored {len(keys) - failed}/{len(keys)} files ({failed} failed)")
+
+# Publish incrementality marker: the commit sha of the last fully-
+# successful publish. Absent on the first run or after any failed run
+# (failed runs never advance it) — both mean "build everything". A
+# missing object is not a restore failure, so it never affects the
+# exit code.
+try:
+    s3.download_file(BUCKET, "state/last-published", "last-published")
+    print("last-published:", Path("last-published").read_text().strip())
+except Exception:
+    Path("last-published").touch()
+    print("no last-published marker — next publish is a full rebuild")
+
 sys.exit(1 if failed else 0)
