@@ -50,6 +50,28 @@ jobs:
           [ -n "$(ls repo/refs/heads/app/ 2>/dev/null)" ] || \
             echo "::warning::no omapak refs restored — if this is not the first run, the restore failed"
 
+      - name: Drop refs with missing commit objects
+        run: |
+          # Exporting an app into the live repo regenerates the appstream
+          # branch by walking every ref in the repo, and it aborts hard on
+          # a ref whose commit object can't be loaded (assertion in
+          # _flatpak_repo_generate_appstream, run 35462539327: every build
+          # died with signal 6). The flathub merge tolerates pull
+          # failures, so refs with no commit object accumulate under
+          # refs/mirrors — the summary step only validates refs/heads.
+          # Drop them; the next run's flathub merge re-adds whichever
+          # pulls succeed, and an omapak app that loses its ref here gets
+          # rebuilt below (the skip requires the ref to exist).
+          dropped=0
+          for reffile in $(find repo/refs -type f); do
+            sha=$(cat "$reffile")
+            if [ ! -f "repo/objects/${sha:0:2}/${sha:2}.commit" ]; then
+              rm -f "$reffile"
+              dropped=$((dropped+1))
+            fi
+          done
+          echo "dropped $dropped refs with missing commit objects"
+
       - name: Cache flatpak builds
         uses: actions/cache@v4
         with:
@@ -163,7 +185,11 @@ jobs:
           refs_seen=$(find repo/refs/heads -type f -exec sha256sum {} + | sort)
           for app in apps/*/; do
             name=$(basename "$app")
-            if [ "$build_all" = 0 ] && ! grep -qx "$name" <<<"$changed"; then
+            # Unchanged since the last good publish AND its published ref
+            # survived the ghost purge — a purged ref means the app owes
+            # the repo a build regardless of the marker.
+            if [ "$build_all" = 0 ] && ! grep -qx "$name" <<<"$changed" \
+               && [ -n "$(find repo/refs/heads/app/"$name" -type f 2>/dev/null)" ]; then
               continue
             fi
             # Pick the app-id-named manifest like the judge does
