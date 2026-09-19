@@ -178,6 +178,19 @@ jobs:
           done
           # Fold successful exports into the restored repo
           ostree pull-local --repo=repo build-repo
+          # flatpak-builder 1.4.11 has no --timestamp passthrough: it shells
+          # out to a bare `flatpak build-export`, which stamps the commit
+          # with the appstream file's mtime. The actions/cache restore keeps
+          # that mtime stale across runs, so an unchanged app re-exports a
+          # commit older than ones clients already hold — flatpak then
+          # refuses the pull ("Update is older than current version",
+          # 2026-09-19: talaria + sonix both hit it). Re-stamp every built
+          # app ref with the current time so each publish is strictly newer
+          # than anything installed.
+          for ref in $(ostree refs --repo=build-repo | grep '^app/'); do
+            flatpak build-commit-from --timestamp=NOW --no-update-summary \
+              --gpg-sign="$keyid" --src-repo=build-repo repo "$ref"
+          done
           # Recorded for the post-push gate: failed apps keep their last
           # good ref in the repo (restored from R2), the rest publish, and
           # the run still goes red so nobody misses it.
