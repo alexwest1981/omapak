@@ -12,10 +12,18 @@ description: >-
   dependencies from python3-requirements.json, generated with
   flatpak-pip-generator against the same runtime the sandbox runs. Dictation is
   the one advertised feature that is not bundled: it needs the optional
-  faster-whisper dependency, which is not in the project's declared
-  dependencies, so without it the dictation button produces placeholder text.
+  faster-whisper package, which is not in the project's declared dependencies,
+  and without it the dictation button says so and transcribes nothing rather
+  than inventing a line of text.
   That is stated in the metainfo and tracked as follow-up work rather than
   quietly shipped.
+
+  The distinguishing idea is scope: the AI review works on the selection — a
+  sentence, a paragraph — with the document's own styles in view, and can
+  rewrite inline with Ctrl+K, instead of regenerating the file wholesale;
+  the template vault and the research panel live in the same window. The
+  assistant is opt-in: with no endpoint configured the editor is an ordinary
+  local word processor.
 license: MIT
 homepage: https://github.com/alexwest1981/OmaScribe
 tags: [office, editor, writing]

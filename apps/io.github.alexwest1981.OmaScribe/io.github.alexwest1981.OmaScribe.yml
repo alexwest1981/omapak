@@ -74,10 +74,14 @@ modules:
       - --disable-static
     sources:
       - type: archive
-        url: https://github.com/PortAudio/portaudio/archive/refs/tags/v19.7.0.tar.gz
-        sha256: 5af29ba58bbdbb7bbcefaaecc77ec8fc413f0db6f4c4e286c40c3e1b83174fa0
+        # Upstream's own release tarball, not GitHub's archive URL: the same
+        # URL answered HTTP 504 twice in a row for OmaAmp's identical module
+        # (2026-09-18), and a failed download fails the build gate.
+        url: https://files.portaudio.com/archives/pa_stable_v190700_20210406.tgz
+        sha256: 47efbf42c77c19a05d22e627d42873e991ec0c1357219c0d74ce6a2948cb2def
         x-checker-data:
           type: git
+          url: https://github.com/PortAudio/portaudio.git
           tag-pattern: ^v([\d.]+)$
           is-main-source: true
 
@@ -102,7 +106,7 @@ modules:
     sources:
       - type: git
         url: https://github.com/alexwest1981/OmaScribe
-        commit: b0360330c5873c11c4fa42e97f0d3a8e8fc19800
+        commit: c71a4d6a06035179b342f573f99869be168f0e44
       - type: file
         path: omascribe.sh
       - type: file
