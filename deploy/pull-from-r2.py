@@ -16,8 +16,9 @@ Usage: pull-from-r2.py [repo-dir]
 import os
 import random
 import sys
+import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-
 
 import boto3
 from botocore.config import Config
