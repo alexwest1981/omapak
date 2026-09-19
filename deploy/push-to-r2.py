@@ -36,8 +36,12 @@ s3 = boto3.client(
 )
 
 # Content-addressed ostree objects are immutable; skip re-uploading the
-# ~12k flathub ref/commit files that are already in the bucket. The
-# summary pair always re-uploads (phase 2).
+# ~12k flathub commit files already in the bucket. Everything else that
+# is mutable re-uploads: the summary pair (phase 2), and refs/ — every
+# ref file is exactly 65 bytes, so the old size-match dedup silently
+# skipped changed refs forever. Bucket refs sat at days-old commits
+# while summary and objects moved on (2026-09-19: clients pulling the
+# stale summary entries hit "Update is older than current version").
 ALWAYS_PUSH = {"summary", "summary.sig", "omapak.flatpakrepo"}
 
 existing = {}
@@ -52,7 +56,7 @@ for root, _, files in os.walk(REPO):
     for f in files:
         local = os.path.join(root, f)
         key = os.path.relpath(local, REPO)
-        if key in ALWAYS_PUSH:
+        if key in ALWAYS_PUSH or key.startswith("refs/"):
             finals.append((local, key))
         elif existing.get(key) == os.path.getsize(local):
             skipped += 1
