@@ -107,3 +107,14 @@ for local, key in finals:
 
 s3.upload_file(str(ROOT / "omapak.flatpakrepo"), BUCKET, "omapak.flatpakrepo")
 print("pushed omapak.flatpakrepo (current signing key)")
+
+# Advance the publish marker last, after the summary flipped: it names
+# the commit whose apps are fully in the bucket. The workflow only sets
+# OMAPAK_ADVANCE_MARKER when every build succeeded, so a run with
+# failed apps leaves the marker where it was and the next run
+# re-attempts them.
+if os.environ.get("OMAPAK_ADVANCE_MARKER") == "1":
+    sha = os.environ.get("GITHUB_SHA", "").strip()
+    if sha:
+        s3.put_object(Bucket=BUCKET, Key="state/last-published", Body=sha.encode())
+        print(f"advanced state/last-published -> {sha}")
