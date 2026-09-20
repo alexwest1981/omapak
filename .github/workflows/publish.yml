@@ -250,9 +250,13 @@ jobs:
               tail -5 "/tmp/build-$name.log"
               # Track the refs this export wrote for the re-stamp pass —
               # app refs only; the appstream branches are restamped
-              # explicitly below.
+              # explicitly below. The grep must not fail the step when
+              # the diff is empty: a fully-cached rebuild can reproduce
+              # the published commit bit-for-bit, leaving the seeded ref
+              # unchanged (E131Receiver, run 35492584728 — one empty
+              # diff killed the step under bash -e).
               refs_now=$(find build-repo/refs/heads -type f -exec sha256sum {} + | sort)
-              built_refs="$built_refs $(comm -13 <(echo "$refs_seen") <(echo "$refs_now") | awk '{print $2}' | sed 's|^build-repo/refs/heads/||' | grep '^app/')"
+              built_refs="$built_refs $(comm -13 <(echo "$refs_seen") <(echo "$refs_now") | awk '{print $2}' | sed 's|^build-repo/refs/heads/||' | grep '^app/' || true)"
               refs_seen="$refs_now"
               built="$built $name"
             else
