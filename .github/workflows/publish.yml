@@ -187,9 +187,17 @@ jobs:
           # lives in commit metadata and icons are small filez — both
           # restored from R2. Flathub mirror refs are not seeded; their
           # metadata-only trees only generate "No appstream data" noise.
+          # An omapak app id can also collide with a flathub BRANCH
+          # mirror (Vish and Keyoxide carry /stable refs) whose dirtrees
+          # never reached the bucket — walking one kills the export
+          # (run 35476937549: every app died on Vish's missing dirtree,
+          # 404 from the bucket), so seed only refs whose tree metadata
+          # reads clean end to end.
           for reffile in $(find repo/refs/heads/app -type f 2>/dev/null); do
             name=$(echo "$reffile" | cut -d/ -f5)
             [ -d "apps/$name" ] || continue
+            ref="${reffile#repo/refs/heads/}"
+            ostree ls -R --repo=repo "$ref" >/dev/null 2>&1 || continue
             mkdir -p "$(dirname "build-repo/${reffile#repo/}")"
             cp "$reffile" "build-repo/${reffile#repo/}"
           done
