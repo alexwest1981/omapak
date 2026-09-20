@@ -350,13 +350,40 @@ jobs:
           # warns on every update ("No such ref ... in remote omapak",
           # 2026-09-20: three Locale refs lost since the bucket wipe).
           # ~18.5k refs vs ~6k — flathub's own full summary model.
-          flatpak --user remote-ls --all --columns=ref flathub 2>/dev/null | grep -E '^(app|runtime)/' > /tmp/refs.txt || true
+          flatpak --user remote-ls --all --columns=ref,commit flathub 2>/dev/null | grep -E '^(app|runtime)/' > /tmp/refpairs.txt || true
           # An empty listing means the catalog would vanish from the
           # summary on re-sign — fail instead.
-          [ -s /tmp/refs.txt ] || { echo "::error::no flathub refs listed"; exit 1; }
-          wc -l /tmp/refs.txt
-          xargs -a /tmp/refs.txt -n 50 ostree pull --repo=repo --mirror \
-            --commit-metadata-only flathub 2>/dev/null || true
+          [ -s /tmp/refpairs.txt ] || { echo "::error::no flathub refs listed"; exit 1; }
+          wc -l /tmp/refpairs.txt
+          # Incremental sync: dl.flathub.org 403s bulk object fetching
+          # (rate limit — the first full-catalog run lost 12.5k of 18.5k
+          # refs to it), so mirror only refs whose commit differs from
+          # the restored mirrors, in small batches with breathing room
+          # and one retry pass after a cooldown. Steady state is a few
+          # hundred rotated refs; rate-limit stragglers skip this
+          # publish and retry next run.
+          refresh_pending() {
+            : > /tmp/torefresh.txt
+            while IFS=$'\t' read -r ref sha; do
+              mf="repo/refs/mirrors/flathub/$ref"
+              if [ ! -f "$mf" ] || [ "$(cat "$mf")" != "$sha" ]; then
+                echo "$ref" >> /tmp/torefresh.txt
+              fi
+            done < /tmp/refpairs.txt
+          }
+          refresh_pending
+          echo "flathub refs to refresh: $(wc -l < /tmp/torefresh.txt)"
+          xargs -a /tmp/torefresh.txt -n 25 sh -c \
+            'ostree pull --repo=repo --mirror --commit-metadata-only flathub "$@" >/dev/null 2>&1 || true; sleep 0.4' _
+          sleep 60
+          refresh_pending
+          if [ -s /tmp/torefresh.txt ]; then
+            echo "retrying $(wc -l < /tmp/torefresh.txt) refs after cooldown"
+            xargs -a /tmp/torefresh.txt -n 10 sh -c \
+              'ostree pull --repo=repo --mirror --commit-metadata-only flathub "$@" >/dev/null 2>&1 || true; sleep 1' _
+          fi
+          refresh_pending
+          echo "unmirrored after retry: $(wc -l < /tmp/torefresh.txt) (rate-limited refs retry next run)"
           cd repo
           find refs/mirrors -type f 2>/dev/null | while read -r f; do
             ref="${f#refs/mirrors/*/}"
