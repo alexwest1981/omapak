@@ -344,7 +344,13 @@ jobs:
           ostree remote add --repo=repo --gpg-import=flathub-keyring.gpg \
             flathub https://dl.flathub.org/repo/ 2>/dev/null || true
           flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
-          flatpak --user remote-ls --columns=ref flathub 2>/dev/null | grep -E '^(app|runtime)/' > /tmp/refs.txt || true
+          # --all: plain remote-ls hides extension refs (Locale, .Debug,
+          # .Sources). Clients holding runtimes installed from omapak
+          # look up their extensions here, and a summary without them
+          # warns on every update ("No such ref ... in remote omapak",
+          # 2026-09-20: three Locale refs lost since the bucket wipe).
+          # ~18.5k refs vs ~6k — flathub's own full summary model.
+          flatpak --user remote-ls --all --columns=ref flathub 2>/dev/null | grep -E '^(app|runtime)/' > /tmp/refs.txt || true
           # An empty listing means the catalog would vanish from the
           # summary on re-sign — fail instead.
           [ -s /tmp/refs.txt ] || { echo "::error::no flathub refs listed"; exit 1; }
