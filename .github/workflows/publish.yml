@@ -365,16 +365,22 @@ jobs:
           refresh_pending() {
             : > /tmp/torefresh.txt
             while IFS=$'\t' read -r ref sha; do
-              mf="repo/refs/mirrors/flathub/$ref"
-              if [ ! -f "$mf" ] || [ "$(cat "$mf")" != "$sha" ]; then
+              # Mirror refs are written under the remote's COLLECTION ID,
+              # not its name (refs/mirrors/org.flathub.Stable/<ref>, not
+              # refs/mirrors/flathub/<ref>) — the first full-catalog run
+              # refreshed all 18.5k refs every time because the check
+              # looked at the wrong path and rate-limited itself to zero
+              # new mirrors.
+              mf=$(find repo/refs/mirrors -type f -path "*/$ref" 2>/dev/null | head -1)
+              if [ -z "$mf" ] || [ "$(cat "$mf")" != "$sha" ]; then
                 echo "$ref" >> /tmp/torefresh.txt
               fi
             done < /tmp/refpairs.txt
           }
           refresh_pending
           echo "flathub refs to refresh: $(wc -l < /tmp/torefresh.txt)"
-          xargs -a /tmp/torefresh.txt -n 25 sh -c \
-            'ostree pull --repo=repo --mirror --commit-metadata-only flathub "$@" >/dev/null 2>&1 || true; sleep 0.4' _
+          xargs -a /tmp/torefresh.txt -n 100 sh -c \
+            'ostree pull --repo=repo --mirror --commit-metadata-only flathub "$@" >/dev/null 2>&1 || true; sleep 0.3' _
           sleep 60
           refresh_pending
           if [ -s /tmp/torefresh.txt ]; then
