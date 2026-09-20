@@ -253,6 +253,17 @@ jobs:
                 echo "flatpak-builder exceeded OMAPAK_PUBLISH_TIMEOUT_SECS (${OMAPAK_PUBLISH_TIMEOUT_SECS:-5400}s) and was killed" >> "/tmp/build-$name.log"
               fi
               tail -30 "/tmp/build-$name.log"
+              # Per-app failures are tolerated (keep the last-good ref,
+              # gate at the end) — but repo-level corruption kills every
+              # export identically, and tolerating it means 2h of doomed
+              # builds before the red X (2026-09-19: two full runs, all
+              # 40 apps, same appstream assertion). Fail the run the
+              # first time an export dies of it.
+              if grep -qE 'flatpak:ERROR|No such metadata object|Export failed: Child process killed by signal' \
+                  "/tmp/build-$name.log"; then
+                echo "::error::$name failed with a repo-level export error — aborting instead of building the rest into the same wall"
+                exit 1
+              fi
               failed="$failed $name"
             fi
             echo "::endgroup::"
