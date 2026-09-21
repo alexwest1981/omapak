@@ -7,8 +7,8 @@ The open Flatpak repo. **Grade the app on its own merits.**
 I built this because Flathub decided in May 2026 that new apps get banned if AI
 had anything to do with them. Even one commit. That's a dumb rule, and I'd
 rather build the alternative than argue with people who won't have a fair
-conversation about it. Normal people don't give a shit how something was built
-if it works well and fits their needs. Neither do we.
+conversation about it. Normal people don't care how something was built if it
+works well and fits their needs. Neither do we.
 
 So: every submission gets scored by an [agent judge](https://omapak.org/rubric)
 we build in the open, every report is public, and a human makes the merge call.

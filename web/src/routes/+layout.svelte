@@ -67,7 +67,7 @@
       >
         <div class="flex flex-col gap-1.5">
           <span>Omapak · every flatpak, every distro</span>
-          <span>one remote · every app · normal people don't give a shit how it was built, neither do we</span>
+          <span>one remote · every app · normal people don't care how it was built, neither do we</span>
         </div>
         <div class="flex flex-col gap-1.5 sm:items-end">
           <nav class="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-muted" aria-label="Footer">
