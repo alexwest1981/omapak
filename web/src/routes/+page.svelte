@@ -40,9 +40,9 @@
     Grade the app on its own <span class="text-accent">merits</span>.
   </h1>
   <p class="mt-5 max-w-[var(--read-width)] text-lg text-muted">
-    Normal people don't give a shit how an app was built if it works well and fits their
-    needs. Omapak takes that seriously. One remote gets you everything: omapak apps plus
-    the entire flathub catalog, served and cached by us. Every submission gets scored by an
+    Normal people don't care how an app was built if it works well and fits their needs.
+    Omapak takes that seriously. One remote gets you everything: omapak apps plus the
+    entire flathub catalog, served and cached by us. Every submission gets scored by an
     <a href="/rubric" class="text-accent underline decoration-accent/40 underline-offset-4 hover:decoration-accent">agent judge</a>
     we build in the open, every report is
     <a href="/rubric" class="text-accent underline decoration-accent/40 underline-offset-4 hover:decoration-accent">public</a>,
