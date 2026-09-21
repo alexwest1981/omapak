@@ -20,21 +20,22 @@ jobs:
           printf '[core]\nrepo_version=1\nmode=archive-z2\n' > repo/config
           pip install -q boto3
           python3 deploy/pull-from-r2.py repo
-      - name: Inspect mirrors layout
+      - name: Replicate merge step verbatim, errors visible
         run: |
-          echo "== refs top-level =="
-          ls repo/refs/
-          echo "== mirrors subdirs =="
-          ls repo/refs/mirrors/ | head -5
-          echo "== mirror count =="
-          find repo/refs/mirrors -type f | wc -l
-          echo "== sample mirror paths =="
-          find repo/refs/mirrors -type f | head -3
-          echo "== refresh-match test on first 5 refpairs =="
-          flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
-          flatpak --user remote-ls --all --columns=ref,commit flathub 2>/dev/null | grep -E '^(app|runtime)/' | head -5 > /tmp/pairs.txt
-          cat /tmp/pairs.txt
+          set -x
+          curl -sO https://dl.flathub.org/repo/flathub.flatpakrepo
+          grep '^GPGKey=' flathub.flatpakrepo | cut -d= -f2- | base64 -d > flathub-keyring.gpg
+          ostree remote add --repo=repo --gpg-import=flathub-keyring.gpg \
+            flathub https://dl.flathub.org/repo/ 2>/dev/null || true
+          flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak --version
+          echo "== raw remote-ls bytes (first 3) =="
+          flatpak --user remote-ls --all --columns=ref,commit flathub | grep -E '^(app|runtime)/' | head -3 | cat -A
+          echo "== match test (first 5) =="
+          flatpak --user remote-ls --all --columns=ref,commit flathub | grep -E '^(app|runtime)/' | head -5 > /tmp/refpairs.txt
+          cat /tmp/refpairs.txt
           while IFS=$'\t' read -r ref sha; do
             mf=$(find repo/refs/mirrors -type f -path "*/$ref" 2>/dev/null | head -1)
-            echo "$ref -> mf=[${mf:-NONE}] content=[$([ -n "$mf" ] && cat "$mf")] expected=[$sha]"
-          done < /tmp/pairs.txt
+            printf '%s -> mf=[%s] content=[%s] expected=[%s]\n' "$ref" "${mf:-NONE}" "$([ -n "$mf" ] && cat "$mf")" "$sha"
+          done < /tmp/refpairs.txt
+          set +x
