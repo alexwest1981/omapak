@@ -337,73 +337,15 @@ jobs:
           done
 
 
-      - name: Merge flathub catalog refs (metadata only)
-        run: |
-          curl -sO https://dl.flathub.org/repo/flathub.flatpakrepo
-          grep '^GPGKey=' flathub.flatpakrepo | cut -d= -f2- | base64 -d > flathub-keyring.gpg
-          ostree remote add --repo=repo --gpg-import=flathub-keyring.gpg \
-            flathub https://dl.flathub.org/repo/ 2>/dev/null || true
-          flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
-          # --all: plain remote-ls hides extension refs (Locale, .Debug,
-          # .Sources). Clients holding runtimes installed from omapak
-          # look up their extensions here, and a summary without them
-          # warns on every update ("No such ref ... in remote omapak",
-          # 2026-09-20: three Locale refs lost since the bucket wipe).
-          # ~18.5k refs vs ~6k — flathub's own full summary model.
-          flatpak --user remote-ls --all --columns=ref,commit flathub 2>/dev/null | grep -E '^(app|runtime)/' > /tmp/refpairs.txt || true
-          # An empty listing means the catalog would vanish from the
-          # summary on re-sign — fail instead.
-          [ -s /tmp/refpairs.txt ] || { echo "::error::no flathub refs listed"; exit 1; }
-          wc -l /tmp/refpairs.txt
-          # Incremental sync: dl.flathub.org 403s bulk object fetching
-          # (rate limit — the first full-catalog run lost 12.5k of 18.5k
-          # refs to it), so mirror only refs whose commit differs from
-          # the restored mirrors, in small batches with breathing room
-          # and one retry pass after a cooldown. Steady state is a few
-          # hundred rotated refs; rate-limit stragglers skip this
-          # publish and retry next run.
-          refresh_pending() {
-            : > /tmp/torefresh.txt
-            while IFS=$'\t' read -r ref sha; do
-              # Two traps found the hard way (runs 35526935774,
-              # 35533913110 — every one of 18.5k refs 'pending' both
-              # times): mirror refs live under the remote's COLLECTION
-              # ID (refs/mirrors/org.flathub.Stable/<ref>, not
-              # refs/mirrors/flathub/<ref>), and remote-ls truncates
-              # the commit column to 12 hex chars while the mirror file
-              # holds the full 64 — equality never held. Match by ref
-              # suffix under any collection dir, prefix-compare the sha.
-              mf=$(find repo/refs/mirrors -type f -path "*/$ref" 2>/dev/null | head -1)
-              cur=""
-              [ -n "$mf" ] && cur=$(cat "$mf")
-              case "$cur" in
-                "$sha"*) ;;
-                *) echo "$ref" >> /tmp/torefresh.txt ;;
-              esac
-            done < /tmp/refpairs.txt
-          }
-          refresh_pending
-          echo "flathub refs to refresh: $(wc -l < /tmp/torefresh.txt)"
-          xargs -a /tmp/torefresh.txt -n 100 sh -c \
-            'ostree pull --repo=repo --mirror --commit-metadata-only flathub "$@" >/dev/null 2>&1 || true; sleep 0.3' _
-          sleep 60
-          refresh_pending
-          if [ -s /tmp/torefresh.txt ]; then
-            echo "retrying $(wc -l < /tmp/torefresh.txt) refs after cooldown"
-            xargs -a /tmp/torefresh.txt -n 10 sh -c \
-              'ostree pull --repo=repo --mirror --commit-metadata-only flathub "$@" >/dev/null 2>&1 || true; sleep 1' _
-          fi
-          refresh_pending
-          echo "unmirrored after retry: $(wc -l < /tmp/torefresh.txt) (rate-limited refs retry next run)"
-          cd repo
-          find refs/mirrors -type f 2>/dev/null | while read -r f; do
-            ref="${f#refs/mirrors/*/}"
-            mkdir -p "refs/heads/$(dirname "$ref")"
-            cp "$f" "refs/heads/$ref"
-          done
-          cd ..
-          echo "refs going into summary: $(find repo/refs/heads -type f | wc -l)"
-
+      # No flathub mirror step. dl.flathub.org rate-limits bulk object
+      # fetching by IP — GitHub runner pools, Cloudflare Workers, even
+      # residential IPs under load (2026-09-20: three full runs, zero
+      # progress, 13.5k extension refs never mirrorable). Clients get
+      # flathub objects the moment they need them via the worker's 302
+      # fallback instead (worker/src/lib.rs, #181), and the summary's
+      # flathub refs stay as last mirrored in R2. Freshness of those
+      # refs moves to the summary composer; until it lands they are
+      # stale-but-valid (old commits stay installable).
       - name: Sign combined summary
         env:
           OMAPAK_GPG_KEY: ${{ secrets.OMAPAK_GPG_KEY }}
