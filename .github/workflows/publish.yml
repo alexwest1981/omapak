@@ -365,16 +365,21 @@ jobs:
           refresh_pending() {
             : > /tmp/torefresh.txt
             while IFS=$'\t' read -r ref sha; do
-              # Mirror refs are written under the remote's COLLECTION ID,
-              # not its name (refs/mirrors/org.flathub.Stable/<ref>, not
-              # refs/mirrors/flathub/<ref>) — the first full-catalog run
-              # refreshed all 18.5k refs every time because the check
-              # looked at the wrong path and rate-limited itself to zero
-              # new mirrors.
+              # Two traps found the hard way (runs 35526935774,
+              # 35533913110 — every one of 18.5k refs 'pending' both
+              # times): mirror refs live under the remote's COLLECTION
+              # ID (refs/mirrors/org.flathub.Stable/<ref>, not
+              # refs/mirrors/flathub/<ref>), and remote-ls truncates
+              # the commit column to 12 hex chars while the mirror file
+              # holds the full 64 — equality never held. Match by ref
+              # suffix under any collection dir, prefix-compare the sha.
               mf=$(find repo/refs/mirrors -type f -path "*/$ref" 2>/dev/null | head -1)
-              if [ -z "$mf" ] || [ "$(cat "$mf")" != "$sha" ]; then
-                echo "$ref" >> /tmp/torefresh.txt
-              fi
+              cur=""
+              [ -n "$mf" ] && cur=$(cat "$mf")
+              case "$cur" in
+                "$sha"*) ;;
+                *) echo "$ref" >> /tmp/torefresh.txt ;;
+              esac
             done < /tmp/refpairs.txt
           }
           refresh_pending
