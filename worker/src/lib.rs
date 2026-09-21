@@ -104,7 +104,14 @@ async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
         let upstream_req = Request::new_with_init(&format!("{UPSTREAM}/{path}"), &init)?;
         let mut resp = Fetch::Request(upstream_req).send().await?;
         if resp.status_code() != 200 {
-            return Response::error("not found", 404);
+            // Not "missing": dl.flathub.org rate-limits bulk fetching by
+            // IP (CI runners and Cloudflare egress are effectively banned,
+            // 2026-09-20). Signal the caller so it can hand the client a
+            // redirect instead of a dead 404.
+            return Err(Error::RustError(format!(
+                "upstream status {} for {path}",
+                resp.status_code()
+            )));
         }
 
         let mut headers = Headers::new();
@@ -134,11 +141,29 @@ async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
         Ok(Response::from_bytes(bytes)?.with_headers(headers))
     }
 
+    // Cache miss: fetch from flathub once and cache it. When that fails —
+    // and from datacenter egress it usually does (see above) — hand the
+    // client a 302 to the upstream object instead: ostree and flatpak
+    // follow redirects for object fetches (verified against a local
+    // redirecting server), so the client's own IP does the fetch
+    // transparently while staying configured against omapak alone. The
+    // repo-critical guard above still applies: summaries and the
+    // flatpakrepo never leave R2.
     match fetch_upstream(&path, &bucket).await {
         Ok(resp) => Ok(resp),
         Err(e) => {
-            console_debug!("upstream fetch failed for {path}: {e:#}");
-            Response::error("upstream unavailable", 502)
+            console_debug!("upstream fetch failed for {path}: {e:#}; redirecting");
+            upstream_redirect(&path)
         }
     }
+}
+
+// 302 to the upstream object URL; the client follows it. Content-addressed
+// paths mean whatever arrives is exactly the bytes omapak would have
+// cached, so verification is unaffected.
+fn upstream_redirect(path: &str) -> Result<Response> {
+    let mut headers = Headers::new();
+    headers.set("Location", &format!("{UPSTREAM}/{path}"))?;
+    let _ = headers.set("Access-Control-Allow-Origin", "*");
+    Ok(Response::empty()?.with_status(302).with_headers(headers))
 }
