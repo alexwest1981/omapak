@@ -1,0 +1,40 @@
+name: diagnose-repo
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore repo refs from R2
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          mkdir -p repo/refs/heads repo/objects repo/refs/remotes repo/refs/mirrors repo/extensions
+          printf '[core]\nrepo_version=1\nmode=archive-z2\n' > repo/config
+          pip install -q boto3
+          python3 deploy/pull-from-r2.py repo
+      - name: Inspect mirrors layout
+        run: |
+          echo "== refs top-level =="
+          ls repo/refs/
+          echo "== mirrors subdirs =="
+          ls repo/refs/mirrors/ | head -5
+          echo "== mirror count =="
+          find repo/refs/mirrors -type f | wc -l
+          echo "== sample mirror paths =="
+          find repo/refs/mirrors -type f | head -3
+          echo "== refresh-match test on first 5 refpairs =="
+          flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+          flatpak --user remote-ls --all --columns=ref,commit flathub 2>/dev/null | grep -E '^(app|runtime)/' | head -5 > /tmp/pairs.txt
+          cat /tmp/pairs.txt
+          while IFS=$'\t' read -r ref sha; do
+            mf=$(find repo/refs/mirrors -type f -path "*/$ref" 2>/dev/null | head -1)
+            echo "$ref -> mf=[${mf:-NONE}] content=[$([ -n "$mf" ] && cat "$mf")] expected=[$sha]"
+          done < /tmp/pairs.txt
