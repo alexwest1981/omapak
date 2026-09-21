@@ -1,0 +1,15 @@
+[package]
+name = "omapak-composer"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+# ostrya-gvariant, the byte-exact ostree GVariant codec the merge uses.
+rust-version = "1.92"
+
+[dependencies]
+ostrya-gvariant = "0.2"
+anyhow = "1"
+
+[[bin]]
+name = "composer-merge"
+path = "src/main.rs"

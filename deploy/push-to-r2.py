@@ -6,9 +6,15 @@ and rclone's CopyObject isn't implemented by R2. boto3's upload_file
 sends a simple PUT which R2 fully supports.
 
 Ordering invariant: content-addressed objects and refs upload first, and
-the summary only replaces the live one after every object it references
-is in the bucket — a summary naming missing objects breaks clients
-mid-publish. Any upload failure aborts before the summary flips.
+the composer's input (summary-base) only replaces the previous one after
+every object it references is in the bucket — a summary naming missing
+objects breaks clients. Any upload failure aborts before it flips.
+
+The live summary pair is NOT published here: the composer
+(.github/workflows/compose.yml) owns it, merging this run's summary-base
+with flathub's live catalog and signing the result. That keeps the
+flathub half of the catalog fresh between publishes and leaves no window
+where a publish replaces the composed document with an omapak-only one.
 """
 import os
 import sys
@@ -37,12 +43,12 @@ s3 = boto3.client(
 
 # Content-addressed ostree objects are immutable; skip re-uploading the
 # ~12k flathub commit files already in the bucket. Everything else that
-# is mutable re-uploads: the summary pair (phase 2), and refs/ — every
-# ref file is exactly 65 bytes, so the old size-match dedup silently
-# skipped changed refs forever. Bucket refs sat at days-old commits
-# while summary and objects moved on (2026-09-19: clients pulling the
-# stale summary entries hit "Update is older than current version").
-ALWAYS_PUSH = {"summary", "summary.sig", "omapak.flatpakrepo"}
+# is mutable re-uploads: summary-base (phase 2), and refs/ — every ref
+# file is exactly 65 bytes, so the old size-match dedup silently skipped
+# changed refs forever. Bucket refs sat at days-old commits while
+# summary and objects moved on (2026-09-19: clients pulling the stale
+# summary entries hit "Update is older than current version").
+ALWAYS_PUSH = {"summary-base", "omapak.flatpakrepo"}
 
 existing = {}
 for page in s3.get_paginator("list_objects_v2").paginate(Bucket=BUCKET):
@@ -56,6 +62,11 @@ for root, _, files in os.walk(REPO):
     for f in files:
         local = os.path.join(root, f)
         key = os.path.relpath(local, REPO)
+        # The live pair belongs to the composer; publishing this run's
+        # copy here would replace the merged catalog with an
+        # omapak-only document until the next compose tick.
+        if key in ("summary", "summary.sig"):
+            continue
         if key in ALWAYS_PUSH or key.startswith("refs/"):
             finals.append((local, key))
         elif existing.get(key) == os.path.getsize(local):
@@ -108,6 +119,16 @@ if failed:
 for local, key in finals:
     s3.upload_file(local, BUCKET, key)
     print(f"pushed {key}")
+
+# This run's summary is the composer's input. It never reaches clients
+# under its own name: the composer merges it with flathub's live summary
+# and publishes the result as `summary` + `summary.sig`.
+summary_local = os.path.join(REPO, "summary")
+if not os.path.exists(summary_local):
+    print("::error::no summary in repo to publish as summary-base", file=sys.stderr)
+    sys.exit(1)
+s3.upload_file(summary_local, BUCKET, "summary-base")
+print("pushed summary-base (composer input)")
 
 s3.upload_file(str(ROOT / "omapak.flatpakrepo"), BUCKET, "omapak.flatpakrepo")
 print("pushed omapak.flatpakrepo (current signing key)")
