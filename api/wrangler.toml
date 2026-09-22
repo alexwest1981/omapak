@@ -1,0 +1,32 @@
+name = "omapak-api"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+
+# Serves api.omapak.org: the versioned JSON API the website and the future
+# desktop app both populate from. The repo proxy worker (worker/) keeps
+# repo.omapak.org as a pure flatpak remote; this one owns accounts + reviews.
+routes = [{ pattern = "api.omapak.org/*", zone_name = "omapak.org" }]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "omapak-api"
+# Create with `wrangler d1 create omapak-api`, then paste the real id here.
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+# Read-only view of the same bucket the repo proxy serves: catalog.json,
+# flathub.json and reports/ live there, pushed by CI (web/scripts/push-catalog
+# and build-flathub-index --push). The API never writes to this bucket.
+[[r2_buckets]]
+binding = "REPO"
+bucket_name = "omapak-repo"
+
+[vars]
+API_ORIGIN = "https://api.omapak.org"
+SITE_ORIGIN = "https://omapak.org"
+MAIL_FROM = "Omapak <login@omapak.org>"
+# "" in production. "1" only in local dev (.dev.vars), where RESEND_API_KEY is
+# absent: the magic link is returned in the API response instead of emailed.
+ALLOW_DEV_LINKS = ""
+
+# Secrets (wrangler secret put …): SESSION_SECRET (32+ random chars),
+# RESEND_API_KEY (transactional email). See api/README.md.

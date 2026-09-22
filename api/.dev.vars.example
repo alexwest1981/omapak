@@ -1,0 +1,7 @@
+# Copy to api/.dev.vars (gitignored) for local dev. Production values are
+# wrangler secrets — see api/README.md.
+SESSION_SECRET=dev-only-secret-at-least-32-chars-long
+SITE_ORIGIN=http://localhost:5217
+API_ORIGIN=http://localhost:8787
+MAIL_FROM=Omapak <login@omapak.org>
+ALLOW_DEV_LINKS=1
