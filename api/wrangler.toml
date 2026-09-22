@@ -1,6 +1,8 @@
 name = "omapak-api"
 main = "src/index.ts"
 compatibility_date = "2026-09-01"
+# Routing is the custom domain only (below); never a workers.dev subdomain.
+workers_dev = false
 
 # Serves api.omapak.org: the versioned JSON API the website and the future
 # desktop app both populate from. The repo proxy worker (worker/) keeps
