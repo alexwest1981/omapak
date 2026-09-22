@@ -4,8 +4,10 @@ compatibility_date = "2026-09-01"
 
 # Serves api.omapak.org: the versioned JSON API the website and the future
 # desktop app both populate from. The repo proxy worker (worker/) keeps
-# repo.omapak.org as a pure flatpak remote; this one owns accounts + reviews.
-routes = [{ pattern = "api.omapak.org/*", zone_name = "omapak.org" }]
+# repo.omapak.org a pure flatpak remote; this one owns accounts + reviews.
+# Routing is a Workers Custom Domain (api.omapak.org), attached once via the
+# accounts/:id/workers/domains API — no route in the toml, and deploys need
+# no zone-scoped token. See api/README.md.
 
 [[d1_databases]]
 binding = "DB"
