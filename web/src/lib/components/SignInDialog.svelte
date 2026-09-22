@@ -39,7 +39,17 @@
   $effect(() => {
     if (!signIn.open) reset();
   });
+
+  function onKeydown(e: KeyboardEvent) {
+    if (signIn.open && e.key === "Escape") {
+      e.stopPropagation();
+      closeSignIn();
+    }
+  }
+
 </script>
+
+<svelte:window onkeydown={onKeydown} />
 
 {#if signIn.open}
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
