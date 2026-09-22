@@ -2,7 +2,6 @@
   import LogOut from "@lucide/svelte/icons/log-out";
   import { useMe, signOut } from "$lib/api/queries";
   import { openSignIn } from "$lib/sign-in.svelte";
-  import SignInDialog from "./SignInDialog.svelte";
 
   const me = useMe();
   let open = $state(false);
@@ -50,5 +49,3 @@
     sign in</button
   >
 {/if}
-
-<SignInDialog />

@@ -4,6 +4,7 @@
   import ThemeToggle from "$lib/components/ThemeToggle.svelte";
   import OmapakMark from "$lib/components/OmapakMark.svelte";
   import AuthMenu from "$lib/components/AuthMenu.svelte";
+  import SignInDialog from "$lib/components/SignInDialog.svelte";
   import ExternalLink from "@lucide/svelte/icons/external-link";
   import { initTheme } from "$lib/theme.svelte";
   import { queryClient } from "$lib/api/queryClient";
@@ -92,4 +93,7 @@
       </div>
     </footer>
   </div>
+  <!-- Outside the blurred header: a backdrop-filter on an ancestor becomes
+       the containing block for fixed children, which clipped the dialog. -->
+  <SignInDialog />
 </QueryClientProvider>
