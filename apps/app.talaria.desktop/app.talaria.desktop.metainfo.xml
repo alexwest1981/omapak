@@ -42,6 +42,17 @@
   </keywords>
   <content_rating type="oars-1.1" />
   <releases>
+    <release version="0.6.0" date="2026-09-22">
+      <description>
+        <p>
+          Window chrome with three titlebar modes (themed, OS, none), an
+          instance switcher that stays on screen inside every instance,
+          in-app updates from GitHub Releases, and a production webview in
+          source builds — the window no longer loads localhost when the app
+          is built with cargo instead of the Tauri CLI.
+        </p>
+      </description>
+    </release>
     <release version="0.1.0" date="2026-09-16">
       <description>
         <p>First release of the official Talaria desktop client.</p>
