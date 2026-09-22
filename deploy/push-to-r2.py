@@ -18,6 +18,7 @@ where a publish replaces the composed document with an omapak-only one.
 """
 import os
 import sys
+import hashlib
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -53,7 +54,7 @@ ALWAYS_PUSH = {"summary-base", "omapak.flatpakrepo"}
 existing = {}
 for page in s3.get_paginator("list_objects_v2").paginate(Bucket=BUCKET):
     for obj in page.get("Contents", []):
-        existing[obj["Key"]] = obj["Size"]
+        existing[obj["Key"]] = (obj["Size"], obj.get("ETag", "").strip('"'))
 
 pending = []
 finals = []
@@ -67,11 +68,34 @@ for root, _, files in os.walk(REPO):
         # omapak-only document until the next compose tick.
         if key in ("summary", "summary.sig"):
             continue
-        if key in ALWAYS_PUSH or key.startswith("refs/"):
+        if key in ALWAYS_PUSH:
             finals.append((local, key))
-        elif existing.get(key) == os.path.getsize(local):
-            skipped += 1
         else:
+            # Content-hash dedup: for single-part uploads (everything
+            # under 8MB — every ref file and every commit object) the
+            # S3 ETag is the MD5 of the bytes, so an ETag match proves
+            # the remote copy is byte-identical and the upload can be
+            # skipped. Size alone was never sound: mutable 65-byte ref
+            # files made the first version of this dedup freeze every
+            # ref in the bucket at days-old commits while summaries and
+            # objects moved on (2026-09-19), and after that fix refs
+            # re-uploaded unconditionally (~12k PUTs, an hour of every
+            # publish) because size looked equal-but-content-different.
+            # Big files (multipart, ETag not an MD5) keep the size
+            # check: content-addressed objects can't collide on size
+            # with different content without a SHA-256 break.
+            size, etag = existing.get(key, (None, ""))
+            local_size = os.path.getsize(local)
+            if size == local_size and size is not None:
+                if size < 8 * 1024 * 1024:
+                    with open(local, "rb") as fh:
+                        digest = hashlib.md5(fh.read()).hexdigest()
+                    if etag == digest:
+                        skipped += 1
+                        continue
+                else:
+                    skipped += 1
+                    continue
             pending.append((local, key))
 
 print(f"to push: {len(pending)} objects/refs + {len(finals)} summary files "
