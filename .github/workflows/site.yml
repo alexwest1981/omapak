@@ -72,11 +72,17 @@ jobs:
           bun run sync-rubric
           # apps/ only: the fixture never appears on the public catalog
           bun run build-catalog
-          # Refresh the flathub index (categories included) and push it to R2
-          # as data/flathub.json — api.omapak.org reads it for flathub app
-          # detail/review validation. --force: deploys are the only refresher.
-          bun run build-flathub-index --force --push
           bun run build
+
+      - name: Refresh flathub index and push to R2
+        # data/flathub.json (with appstream categories) is what
+        # api.omapak.org reads for flathub app detail/review validation.
+        # --force: site deploys are the only refresher. Must run before the
+        # Pages deploy so the fresh index ships inside the static bundle too.
+        working-directory: web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: bun run build-flathub-index --force --push
 
       - name: Deploy to Cloudflare Pages
         working-directory: web
