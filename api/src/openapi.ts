@@ -113,7 +113,7 @@ export function openapi(): Record<string, unknown> {
             { name: "q", in: "query", schema: { type: "string" }, description: "case-insensitive match on app_id, name, summary" },
             { name: "source", in: "query", schema: { type: "string", enum: ["all", "omapak", "flathub"] }, description: "defaults to all" },
             { name: "category", in: "query", schema: categoryId },
-            { name: "limit", in: "query", schema: { type: "integer", default: 500, maximum: 2000 } },
+            { name: "limit", in: "query", schema: { type: "integer", default: 500, maximum: 5000 } },
             { name: "offset", in: "query", schema: { type: "integer", default: 0 } },
           ],
           responses: {
@@ -125,6 +125,16 @@ export function openapi(): Record<string, unknown> {
                     type: "object",
                     properties: {
                       total: { type: "integer" },
+                      counts: {
+                        type: "object",
+                        description: "server-truth source counts, independent of pagination",
+                        properties: {
+                          omapak: { type: "integer" },
+                          flathub: { type: "integer" },
+                          all: { type: "integer" },
+                        },
+                        required: ["omapak", "flathub", "all"],
+                      },
                       apps: { type: "array", items: { $ref: "#/components/schemas/AppSummary" } },
                       categories: {
                         type: "array",

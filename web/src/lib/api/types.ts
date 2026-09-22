@@ -82,6 +82,8 @@ export interface Featured {
 
 export interface AppsResponse {
   total: number;
+  /** Server-truth source counts — stable regardless of pagination. */
+  counts: { omapak: number; flathub: number; all: number };
   apps: AppSummary[];
   categories: CategoryCount[];
 }

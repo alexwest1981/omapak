@@ -43,8 +43,10 @@
           a.summary.toLowerCase().includes(needle)),
     );
   });
-  const omapakCount = $derived(($apps.data?.apps ?? []).filter((a) => a.source === "omapak").length);
-  const flathubCount = $derived(($apps.data?.apps ?? []).filter((a) => a.source === "flathub").length);
+  // Server-truth counts: the loaded array can be a truncated page window,
+  // and counting it underreported flathub by ~1300 apps.
+  const omapakCount = $derived($apps.data?.counts?.omapak ?? 0);
+  const flathubCount = $derived($apps.data?.counts?.flathub ?? 0);
 
   function setParam(key: string, value: string) {
     const url = new URL(page.url);

@@ -38,13 +38,20 @@ async function staticApps(source: AppSource | "all"): Promise<AppsResponse> {
     .filter((a) => !hosted.has(a.app_id))
     .map((a) => normalizeFlathub({ ...a, categories: a.categories ?? [] }));
   const apps = source === "omapak" ? omapak : source === "flathub" ? passthrough : [...omapak, ...passthrough];
-  return { total: apps.length, apps, categories: countCategories(apps) };
+  return {
+    total: apps.length,
+    counts: { omapak: omapak.length, flathub: passthrough.length, all: omapak.length + passthrough.length },
+    apps,
+    categories: countCategories(apps),
+  };
 }
 
 export function useApps(source: AppSource | "all" | Readable<AppSource | "all">) {
+  // limit=5000: the store filters client-side, so the whole list must land
+  // in one response (same payload the old homepage shipped as flathub.json).
   const options = derived(asStore(source), (s) => ({
     queryKey: ["apps", s],
-    queryFn: () => api<AppsResponse>(`/v1/apps?source=${s}&limit=2000`).catch(() => staticApps(s)),
+    queryFn: () => api<AppsResponse>(`/v1/apps?source=${s}&limit=5000`).catch(() => staticApps(s)),
     staleTime: 5 * 60 * 1000,
   }));
   return createQuery(options);

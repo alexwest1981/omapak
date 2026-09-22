@@ -133,7 +133,7 @@ v1.get("/apps", async (c) => {
   const source = (c.req.query("source") ?? "all") as "all" | "omapak" | "flathub";
   const category = c.req.query("category") ?? "";
   const q = (c.req.query("q") ?? "").trim().toLowerCase();
-  const limit = intParam(c.req.query("limit"), 500, 1, 2000);
+  const limit = intParam(c.req.query("limit"), 500, 1, 5000);
   const offset = intParam(c.req.query("offset"), 0, 0, 1_000_000);
 
   const { omapak, flathub } = await loadSummaries(c.env);
@@ -159,7 +159,14 @@ v1.get("/apps", async (c) => {
   const ratings = await ratingAggregates(c.env.DB, page.map((a) => a.app_id));
   for (const a of page) a.rating = ratings.get(a.app_id) ?? null;
 
-  return c.json({ total: filtered.length, apps: page, categories });
+  // Server-truth counts: stable no matter the page window, so clients can
+  // label totals without guessing at pagination truncation.
+  return c.json({
+    total: filtered.length,
+    counts: { omapak: omapak.length, flathub: flathub.length, all: omapak.length + flathub.length },
+    apps: page,
+    categories,
+  });
 });
 
 v1.get("/apps/:id", async (c) => {
