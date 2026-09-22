@@ -311,11 +311,13 @@ v1.get("/categories", async (c) => {
  *   + review signal, capped at 3  → community ratings, damped so a single
  *                                    5★ rating can't hijack the slot:
  *                                    signal = average/5 × min(ratings, 12)
+ *   + installs, log-damped, ≤3    → ref resolutions counted by the repo
+ *                                    proxy: 2^(1/4) growth per ~20%, so
+ *                                    10→+1, 100→+2, 1000→+3
  *
  * Weighted sampling without replacement picks 5 (hero first). The hour-seeded
  * PRNG makes the slate deterministic for an hour — the desktop app and every
- * browser agree on it — then re-rolls. Future hook: install counts can join
- * the weight once the API can observe them (see api/README.md).
+ * browser agree on it — then re-rolls.
  */
 v1.get("/featured", async (c) => {
   const { omapak } = await loadSummaries(c.env);
@@ -324,17 +326,23 @@ v1.get("/featured", async (c) => {
   );
   if (!eligible.length) return c.json({ error: "no apps to feature" }, 404);
 
-  const ratings = await ratingAggregates(
-    c.env.DB,
-    eligible.map((a) => a.app_id),
-  );
+  const ids = eligible.map((a) => a.app_id);
+  const [ratings, installRows] = await Promise.all([
+    ratingAggregates(c.env.DB, ids),
+    c.env.DB.prepare(`SELECT app_id, count FROM installs WHERE app_id IN (${ids.map((_, i) => `?${i + 1}`).join(",")})`)
+      .bind(...ids)
+      .all<{ app_id: string; count: number }>(),
+  ]);
+  const installs = new Map(installRows.results.map((r) => [r.app_id, r.count]));
+
   const weights = new Map<string, number>();
   for (const a of eligible) {
     const judge = a.advisory_average ?? 2.5;
     const cert = a.certified ? 2 : 0;
     const rating = ratings.get(a.app_id);
-    const popularity = rating ? (rating.average / 5) * Math.min(rating.count, 12) : 0;
-    weights.set(a.app_id, Math.max(0.1, judge + cert + popularity));
+    const reviewSignal = rating ? (rating.average / 5) * Math.min(rating.count, 12) : 0;
+    const installSignal = Math.min(3, Math.log2(1 + (installs.get(a.app_id) ?? 0)) / 2);
+    weights.set(a.app_id, Math.max(0.1, judge + cert + reviewSignal + installSignal));
   }
 
   const hour = Math.floor(Date.now() / 3_600_000);
@@ -377,8 +385,41 @@ function weightedSample<T>(items: T[], weightOf: (t: T) => number, k: number, ra
   }
   return picked;
 }
+// ── Internal (repo proxy) ───────────────────────────────────────────────────
 
-// ── Auth & profile ──────────────────────────────────────────────────────────
+/**
+ * Install counter from the repo proxy (repo.omapak.org). The proxy POSTs
+ * {app_id} whenever flatpak resolves one of its refs (an install or an
+ * update — both mean a live user touching the app). Authenticated by the
+ * shared PROXY_TOKEN secret; disabled entirely when that secret is absent.
+ * Attribution is validated against the live catalog so bogus ids can't
+ * manufacture rows. 204 either way: the proxy fire-and-forgets and never
+ * retries, so it can't distinguish (and shouldn't care about) outcomes.
+ */
+app.post("/internal/installs", async (c) => {
+  if (!c.env.PROXY_TOKEN) return c.body(null, 404);
+  const auth = c.req.header("authorization") ?? "";
+  if (auth !== `Bearer ${c.env.PROXY_TOKEN}`) return c.body(null, 403);
+
+  let appId: unknown;
+  try {
+    ({ app_id: appId } = (await c.req.json()) as { app_id?: unknown });
+  } catch {
+    return c.body(null, 400);
+  }
+  if (typeof appId !== "string" || !/^[A-Za-z0-9._-]+$/.test(appId)) return c.body(null, 400);
+
+  if ((await appExists(c.env, appId)) === null) return c.body(null, 204);
+
+  await c.env.DB.prepare(
+    `INSERT INTO installs (app_id, count, first_at, last_at) VALUES (?1, 1, datetime('now'), datetime('now'))
+     ON CONFLICT (app_id) DO UPDATE SET count = count + 1, last_at = datetime('now')`,
+  )
+    .bind(appId)
+    .run();
+  return c.body(null, 204);
+});
+
 
 v1.post("/auth/magic-link", (c) => requestMagicLink(c, c.env));
 v1.get("/auth/verify", (c) => verifyMagicLink(c, c.env));

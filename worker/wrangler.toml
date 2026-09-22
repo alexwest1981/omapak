@@ -10,6 +10,12 @@ routes = [{ pattern = "repo.omapak.org/*", zone_name = "omapak.org" }]
 binding = "OMAPAK_REPO"
 bucket_name = "omapak-repo"
 
+# Install counter: where to POST ref resolutions (fire-and-forget, see
+# src/lib.rs count_install). The auth token is a secret: OMAPAK_API_TOKEN,
+# shared with the api worker's PROXY_TOKEN. Both absent in local dev →
+# counting silently disabled.
+[vars]
+OMAPAK_API_URL = "https://api.omapak.org"
 # Must stay last: keys after this table would scope into [build].
 # --no-panic-recovery: wasm-bindgen's catch wrappers require an externref
 # table worker-build can't produce; abort-on-panic is a fine trade for a

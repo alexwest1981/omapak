@@ -5,7 +5,10 @@ export interface Env {
   /** Secrets (`wrangler secret put`). */
   SESSION_SECRET: string; // 32+ random chars; HS256 session signing
   RESEND_API_KEY?: string; // absent => dev-link mode (local only)
+  /** Shared secret the repo proxy presents to POST /internal/installs. */
+  PROXY_TOKEN?: string; // absent => internal endpoint disabled
 
+  /** Vars (wrangler.toml / .dev.vars). */
   API_ORIGIN: string; // https://api.omapak.org in production; localhost in dev
   SITE_ORIGIN: string; // https://omapak.org in production
   MAIL_FROM: string; // "Omapak <login@omapak.org>"

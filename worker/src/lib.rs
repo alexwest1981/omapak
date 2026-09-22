@@ -8,6 +8,7 @@
 //! which miss the cache and fetch from upstream. The summary (generated
 //! daily by CI, signed with omapak's key) is the only freshness surface.
 
+use wasm_bindgen::JsValue;
 use worker::*;
 
 const UPSTREAM: &str = "https://dl.flathub.org/repo";
@@ -29,7 +30,7 @@ async fn r2_get(bucket: &worker::Bucket, path: &str) -> Result<Option<Object>> {
 }
 
 #[event(fetch)]
-async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
+async fn main(req: Request, env: Env, ctx: Context) -> Result<Response> {
     if req.method() != Method::Get && req.method() != Method::Head {
         return Response::error("method not allowed", 405);
     }
@@ -42,6 +43,17 @@ async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
 
 
 
+    // Ref resolutions are the install/update signal the store's popularity
+    // math feeds on: every flatpak install or update resolves the app's ref
+    // first. Count them by telling the API, fire-and-forget — waitUntil so
+    // the log outlives the response, but nothing here can delay or fail
+    // the ref serve itself.
+    if path.starts_with("refs/heads/app/") {
+        if let Some(app_id) = app_id_from_ref(&path) {
+            let env = env.clone();
+            ctx.wait_until(count_install(env, app_id.clone()));
+        }
+    }
     // R2 first (omapak's own objects, plus everything previously cached).
     if let Some(obj) = r2_get(&bucket, &path).await? {
         // Content-addressed ostree objects never change; everything the
@@ -158,6 +170,45 @@ async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
     }
 }
 
+// refs/heads/app/<app-id>/<arch>/<branch> → <app-id> (app ids are
+// dot-separated and never contain '/').
+fn app_id_from_ref(path: &str) -> Option<String> {
+    let rest = path.strip_prefix("refs/heads/app/")?;
+    let id = rest.split('/').next()?;
+    if id.is_empty() { None } else { Some(id.to_string()) }
+}
+
+// Fire-and-forget POST to the store API's internal counter. Every failure
+// path is swallowed: counting is best-effort and must never surface in the
+// repo serve path. Absent OMAPAK_API_TOKEN (local dev) = no-op.
+async fn count_install(env: Env, app_id: String) {
+    // Secrets: OMAPAK_API_TOKEN (shared with the api worker). Vars:
+    // OMAPAK_API_URL, e.g. https://api.omapak.org. Missing either (local
+    // dev, undeployed config) makes this a silent no-op.
+    let Ok(token) = env.secret("OMAPAK_API_TOKEN") else {
+        return;
+    };
+    let Ok(url) = env.var("OMAPAK_API_URL") else {
+        return;
+    };
+
+    let headers = Headers::new();
+    let _ = headers.set("Content-Type", "application/json");
+    let auth_value = format!("Bearer {token}");
+    let _ = headers.set("Authorization", auth_value.as_str());
+
+    let mut init = RequestInit::new();
+    init.with_method(Method::Post)
+        .with_headers(headers)
+        .with_body(Some(JsValue::from_str(&format!(
+            "{{\"app_id\":\"{app_id}\"}}"
+        ))));
+    let req = match Request::new_with_init(&format!("{url}/internal/installs"), &init) {
+        Ok(r) => r,
+        Err(_) => return,
+    };
+    let _ = Fetch::Request(req).send().await;
+}
 // 302 to the upstream object URL; the client follows it. Content-addressed
 // paths mean whatever arrives is exactly the bytes omapak would have
 // cached, so verification is unaffected.

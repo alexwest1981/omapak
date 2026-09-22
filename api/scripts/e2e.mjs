@@ -216,6 +216,16 @@ const APP_ID = (await json("/v1/apps?source=omapak&limit=1")).body.apps[0].app_i
   check("magic-link spam → 429", last === 429, `last status ${last}`);
 }
 
+// 10b. internal install counter (repo proxy ingest)
+{
+  // dev server has no PROXY_TOKEN → endpoint disabled
+  const off = await fetch(`${BASE}/internal/installs`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ app_id: APP_ID }),
+  });
+  check("internal ingest disabled without PROXY_TOKEN → 404", off.status === 404);
+}
 // 11. CORS preflight from the configured site origin
 {
   const pre = await fetch(`${BASE}/v1/apps`, {
