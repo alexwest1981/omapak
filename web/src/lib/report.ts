@@ -114,6 +114,7 @@ export interface FlathubEntry {
   summary: string;
   icon: string | null;
   license: string | null;
+  categories?: string[];
 }
 
 export interface FlathubIndex {

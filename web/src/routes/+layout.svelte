@@ -1,18 +1,16 @@
 <script lang="ts">
   import "../app.css";
-  import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
+  import { QueryClientProvider } from "@tanstack/svelte-query";
   import ThemeToggle from "$lib/components/ThemeToggle.svelte";
   import OmapakMark from "$lib/components/OmapakMark.svelte";
+  import AuthMenu from "$lib/components/AuthMenu.svelte";
   import ExternalLink from "@lucide/svelte/icons/external-link";
   import { initTheme } from "$lib/theme.svelte";
+  import { queryClient } from "$lib/api/queryClient";
 
   let { children } = $props();
 
   const year = new Date().getFullYear();
-
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { staleTime: Infinity, retry: 1 } },
-  });
 
   $effect(() => {
     initTheme();
@@ -20,7 +18,7 @@
 </script>
 
 <svelte:head>
-  <title>Omapak · the open Flatpak repo</title>
+  <title>Omapak · the open flatpak store</title>
   <meta
     name="description"
     content="Omapak grades the app on its own merits. Every submission scored by an open agent judge, every report public, never gatekept."
@@ -48,10 +46,11 @@
           >
         </a>
         <nav class="flex items-center gap-5 font-mono text-sm">
-          <a href="/" class="text-muted transition-colors hover:text-fg">catalog</a>
+          <a href="/apps" class="text-muted transition-colors hover:text-fg">apps</a>
           <a href="/mission" class="text-muted transition-colors hover:text-fg">mission</a>
           <a href="/rubric" class="text-muted transition-colors hover:text-fg">rubric</a>
           <a href="/submit" class="text-muted transition-colors hover:text-fg">submit</a>
+          <AuthMenu />
           <ThemeToggle />
         </nav>
       </div>
