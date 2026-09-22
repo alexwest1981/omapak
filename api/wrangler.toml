@@ -10,8 +10,8 @@ routes = [{ pattern = "api.omapak.org/*", zone_name = "omapak.org" }]
 [[d1_databases]]
 binding = "DB"
 database_name = "omapak-api"
-# Create with `wrangler d1 create omapak-api`, then paste the real id here.
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+# Id resolved by CI bootstrap (api-deploy.yml) via the REST API; pinned here after first creation.
+database_id = "5dd91e85-3937-4a21-99d1-682cab6f3995"
 
 # Read-only view of the same bucket the repo proxy serves: catalog.json,
 # flathub.json and reports/ live there, pushed by CI (web/scripts/push-catalog

@@ -28,8 +28,13 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: |
+          # create if missing (tolerate "already exists"), then pin the id
+          # from the REST API — wrangler resolves names against the toml, so
+          # a placeholder id there breaks `d1 info` (chicken-and-egg).
           bunx wrangler d1 create omapak-api || true
-          ID=$(bunx wrangler d1 info omapak-api --json | jq -r '.uuid')
+          ID=$(curl -sf -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/d1/database" \
+            | jq -r '.result[] | select(.name == "omapak-api") | .uuid')
           if [ -z "$ID" ] || [ "$ID" = "null" ]; then
             echo "could not resolve D1 database id"; exit 1
           fi
