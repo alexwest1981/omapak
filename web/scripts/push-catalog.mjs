@@ -76,7 +76,17 @@ for (const name of readdirSync(join(root, "apps"))) {
   if (!report && existsSync(reportPath)) {
     try { report = JSON.parse(readFileSync(reportPath, "utf8")); } catch {}
   }
-
+  const advisory = report?.rubric
+    ? (
+        [
+          report.rubric.problem_clarity.score,
+          report.rubric.differentiation.score,
+          report.rubric.architecture.score,
+          report.rubric.code_quality.score,
+          report.rubric.ui_ux.score,
+        ].reduce((a, b) => a + b, 0) / 5
+      ).toFixed(1)
+    : undefined;
   const appId = report?.app_id ?? name;
   // Icons live at the repo URL — publish's icon-extract step pushes one
   // for every successfully built app; metainfo <icon> tags are usually
@@ -93,9 +103,6 @@ for (const name of readdirSync(join(root, "apps"))) {
     icon: `https://repo.omapak.org/icons/${appId}.png`,
     developer: meta.developer || null,
     description: meta.description || null,
-    urls: meta.urls || {},
-    screenshots: meta.screenshots || [],
-    summary: meta.summary,
     submitter: meta.submitter,
     source_repo: meta.source_repo,
     license: meta.license,
@@ -105,6 +112,8 @@ for (const name of readdirSync(join(root, "apps"))) {
     verdict: report?.verdict ?? "published",
     certified: report?.certified ?? false,
     report_available: report !== null,
+    advisory_average: advisory ? Number(advisory) : undefined,
+    last_commit_date: report?.static?.source_stats?.last_commit_date,
   });
 }
 

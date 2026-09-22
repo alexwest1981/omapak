@@ -85,71 +85,92 @@
     {/if}
   </div>
 
-  <!-- Featured hero -->
-  {#if $featured.data?.app_id && !q && !category && source !== "flathub" && $heroDetail.data}
-    <div class="mt-8 grid grid-cols-1 gap-6 rounded-sm border border-accent-border bg-card p-6 shadow-[var(--theme-shadow-1)] lg:grid-cols-[1fr_auto]">
-      <div class="flex min-w-0 items-start gap-5">
-        <div
-          class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line bg-raised"
-        >
-          {#if $heroDetail.data.icon}
+  <!-- Featured hero: only shown when the pick has an icon (and a screenshot
+       when one exists) — an icon-less tile up here looks broken, so the hero
+       just hides rather than degrading. -->
+  {#if $featured.data?.app_id && !q && !category && source !== "flathub"}
+    {@const hero = $heroDetail.data}
+    {#if hero && hero.icon}
+    <div class="relative mt-8 overflow-hidden rounded-sm border border-accent-border shadow-[var(--theme-shadow-1)]">
+      {#if hero.screenshots?.length}
+        <img
+          src={hero.screenshots[0]}
+          alt=""
+              class="absolute inset-0 h-full w-full object-cover opacity-[0.07]"
+          onerror={(e) => {
+            (e.currentTarget as HTMLImageElement).remove();
+          }}
+        />
+      {/if}
+      <div class="relative bg-card/70 p-6 backdrop-blur-[2px] sm:p-8">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_auto]">
+          <div class="flex min-w-0 items-start gap-5">
             <img
-              src={$heroDetail.data.icon}
+              src={hero.icon}
               alt=""
-              class="h-full w-full object-contain"
+              class="h-20 w-20 shrink-0 rounded-xl border border-line bg-raised object-contain shadow-[var(--theme-shadow-1)]"
               onerror={(e) => {
-                (e.currentTarget as HTMLImageElement).style.display = "none";
+                // The icon is a load condition for this hero: if it breaks,
+                // remove the whole block rather than show a broken tile.
+                (e.currentTarget as HTMLImageElement).closest("div.grid")?.parentElement?.parentElement?.remove();
               }}
             />
-          {:else}
-            <span class="font-mono text-2xl font-bold text-accent">{$heroDetail.data.name[0]}</span>
-          {/if}
-        </div>
-        <div class="min-w-0">
-          <div class="flex flex-wrap items-center gap-3">
-            <p class="font-mono text-[10px] uppercase tracking-[0.15em] text-accent">featured</p>
-            {#if $heroDetail.data.rating}
-              <span class="flex items-center gap-1.5 font-mono text-xs text-muted">
-                <RatingStars value={$heroDetail.data.rating.average} />
-                {$heroDetail.data.rating.average.toFixed(1)}</span
+            <div class="min-w-0">
+              <p class="font-mono text-[10px] uppercase tracking-[0.15em] text-accent">featured</p>
+              <a href="/app/{hero.app_id}" class="mt-1 block text-2xl font-semibold text-fg hover:text-accent">
+                {hero.name}
+              </a>
+              <p class="mt-2 max-w-2xl leading-relaxed text-muted">{hero.summary}</p>
+              <div class="mt-3 flex flex-wrap items-center gap-2 font-mono text-xs">
+                <span class="rounded-sm border border-line-subtle bg-panel px-2 py-0.5 text-muted">
+                  {CATEGORY_LABELS[hero.category]}
+                </span>
+                {#if hero.source === "omapak"}
+                  <VerdictBadge verdict={hero.verdict ?? "unpublished"} certified={hero.certified} />
+                  {#if hero.advisory_average !== undefined}
+                    <span class="text-accent" title="agent-judge advisory average"
+                      >judge {hero.advisory_average.toFixed(1)}/5</span
+                    >
+                  {/if}
+                {/if}
+                {#if hero.rating}
+                  <span class="flex items-center gap-1.5">
+                    <RatingStars value={hero.rating.average} />
+                    <span class="text-muted">{hero.rating.average.toFixed(1)}</span>
+                  </span>
+                {/if}
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col justify-center gap-3 lg:w-72">
+            <code
+              class="group flex items-center justify-between gap-3 rounded-sm border border-line bg-input px-4 py-3 font-mono text-sm text-fg shadow-[var(--theme-shadow-1)]"
+            >
+              <span class="truncate">
+                <span class="text-accent">$</span> flatpak install omapak <span class="text-muted">{hero.app_id}</span>
+              </span>
+              <button
+                onclick={() => copyInstall(hero.app_id)}
+                aria-label="Copy install command"
+                title="copy"
+                class="shrink-0 rounded-sm border border-line p-1.5 text-muted transition-colors hover:border-accent-border hover:text-accent"
               >
-            {/if}
-          </div>
-          <a href="/app/{$heroDetail.data.app_id}" class="mt-1 block text-2xl font-semibold text-fg hover:text-accent">
-            {$heroDetail.data.name}
-          </a>
-          <p class="mt-2 max-w-2xl leading-relaxed text-muted">{$heroDetail.data.summary}</p>
-          <div class="mt-3 flex flex-wrap items-center gap-2 font-mono text-xs">
-            <span class="rounded-sm border border-line-subtle bg-panel px-2 py-0.5 text-muted">
-              {CATEGORY_LABELS[$heroDetail.data.category]}
-            </span>
-            {#if $heroDetail.data.source === "omapak"}
-              <VerdictBadge verdict={$heroDetail.data.verdict ?? "unpublished"} certified={$heroDetail.data.certified} />
-              {#if $heroDetail.data.advisory_average !== undefined}
-                <span class="text-accent" title="agent-judge advisory average"
-                  >judge {$heroDetail.data.advisory_average.toFixed(1)}/5</span
-                >
-              {/if}
-            {/if}
+                {#if copied}<Check size={14} class="text-success" />{:else}<Copy size={14} />{/if}
+              </button>
+            </code>
+            <a
+              href="/app/{hero.app_id}"
+              class="rounded-sm border border-accent-border bg-accent-soft px-4 py-2.5 text-center font-mono text-sm text-accent transition-colors hover:bg-accent hover:text-surface"
+            >
+              view app →</a
+            >
+            <p class="text-center font-mono text-[10px] text-ink-dim">{$featured.data?.reason}</p>
           </div>
         </div>
-      </div>
-      <div class="flex flex-col justify-center gap-3 lg:w-64">
-        <button
-          onclick={() => copyInstall($heroDetail.data!.app_id)}
-          class="flex items-center justify-center gap-2 rounded-sm border border-accent-border bg-accent-soft px-4 py-3 font-mono text-sm text-accent transition-colors hover:bg-accent hover:text-surface"
-        >
-          {#if copied}<Check size={16} /> copied{:else}<Copy size={16} /> flatpak install omapak {$heroDetail.data.app_id}{/if}
-        </button>
-        <a
-          href="/app/{$heroDetail.data.app_id}"
-          class="rounded-sm border border-line px-4 py-3 text-center font-mono text-sm text-muted transition-colors hover:border-line-strong hover:text-fg"
-        >
-          view app →</a
-        >
-        <p class="text-center font-mono text-[10px] text-ink-dim">{$featured.data?.reason}</p>
       </div>
     </div>
+    {/if}
   {/if}
 
   <!-- Controls -->
