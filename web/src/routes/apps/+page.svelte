@@ -28,7 +28,7 @@
 
   const heroIdStore = writable("");
   $effect(() => {
-    heroIdStore.set($featured.data?.app_id ?? "");
+    heroIdStore.set($featured.data?.hero ?? "");
   });
   const heroDetail = useAppDetail(heroIdStore);
 
@@ -88,7 +88,7 @@
   <!-- Featured hero: only shown when the pick has an icon (and a screenshot
        when one exists) — an icon-less tile up here looks broken, so the hero
        just hides rather than degrading. -->
-  {#if $featured.data?.app_id && !q && !category && source !== "flathub"}
+  {#if $featured.data?.hero && !q && !category && source !== "flathub"}
     {@const hero = $heroDetail.data}
     {#if hero && hero.icon}
     <div class="relative mt-8 overflow-hidden rounded-sm border border-accent-border shadow-[var(--theme-shadow-1)]">
@@ -170,6 +170,54 @@
         </div>
       </div>
     </div>
+    {/if}
+  {/if}
+
+  <!-- Featured grid: four more weighted picks under the hero. Details come
+       from the same apps listing (already in memory) — no extra requests. -->
+  {#if $featured.data?.more?.length && !q && !category && source !== "flathub"}
+    {@const grid = $featured.data.more
+      .map((id) => ($apps.data?.apps ?? []).find((a) => a.app_id === id))
+      .filter((a): a is NonNullable<typeof a> => Boolean(a && a.icon))}
+    {#if grid.length}
+      <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {#each grid as app (app.app_id)}
+          <a
+            href="/app/{app.app_id}"
+            class="group flex items-center gap-3 rounded-sm border border-line bg-card p-4 shadow-[var(--theme-shadow-1)] transition-colors hover:border-line-strong hover:bg-hover"
+          >
+            <img
+              src={app.icon}
+              alt=""
+              loading="lazy"
+              class="h-11 w-11 shrink-0 rounded-lg border border-line-subtle bg-raised object-contain"
+              onerror={(e) => {
+                (e.currentTarget as HTMLImageElement).remove();
+              }}
+            />
+            <span class="min-w-0">
+              <span class="block truncate text-sm font-medium text-fg group-hover:text-accent">{app.name}</span>
+              <span class="mt-0.5 flex items-center gap-1.5 font-mono text-xs text-ink-dim">
+                {#if app.rating}
+                  <RatingStars value={app.rating.average} size={11} />
+                  <span class="text-muted">{app.rating.count}</span>
+                {:else if app.advisory_average !== undefined}
+                  <span class="text-accent">judge {app.advisory_average.toFixed(1)}</span>
+                {:else}
+                  <span>{CATEGORY_LABELS[app.category]}</span>
+                {/if}
+              </span>
+            </span>
+            {#if app.certified}
+              <span
+                class="ml-auto shrink-0 font-mono text-xs text-accent"
+                title="Meets omapak Certified criteria"
+                >✓</span
+              >
+            {/if}
+          </a>
+        {/each}
+      </div>
     {/if}
   {/if}
 

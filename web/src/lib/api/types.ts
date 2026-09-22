@@ -73,7 +73,10 @@ export interface CategoryCount {
 }
 
 export interface Featured {
-  app_id: string;
+  /** The big card. */
+  hero: string;
+  /** Four smaller grid cards under the hero. */
+  more: string[];
   reason: string;
 }
 

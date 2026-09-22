@@ -247,16 +247,22 @@ export function openapi(): Record<string, unknown> {
       },
       "/v1/featured": {
         get: {
-          summary: "Featured hero app — top-rated omapak apps, rotated daily",
+          summary: "Featured slate — hero plus 4 picks, quality-weighted, refreshed hourly",
+          description:
+            "Randomized hourly, weighted by judge advisory score, certified status, and community ratings. Installs join the weight once the API can observe them.",
           responses: {
             200: {
-              description: "featured app id",
+              description: "featured app ids",
               content: {
                 "application/json": {
                   schema: {
                     type: "object",
-                    properties: { app_id: { type: "string" }, reason: { type: "string" } },
-                    required: ["app_id", "reason"],
+                    properties: {
+                      hero: { type: "string" },
+                      more: { type: "array", items: { type: "string" }, maxItems: 4 },
+                      reason: { type: "string" },
+                    },
+                    required: ["hero", "more", "reason"],
                   },
                 },
               },

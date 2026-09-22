@@ -86,7 +86,17 @@ console.log(`e2e against ${BASE}\n`);
   const { body } = await json("/v1/categories");
   check("GET /v1/categories → counts desc", (body?.categories ?? []).every((c, i, arr) => i === 0 || arr[i - 1].count >= c.count));
   const { res: fRes, body: fBody } = await json("/v1/featured");
-  check("GET /v1/featured → app + reason", fRes.status === 200 && typeof fBody?.app_id === "string" && typeof fBody?.reason === "string");
+  check(
+    "GET /v1/featured → hero + 4 grid picks + reason",
+    fRes.status === 200 && typeof fBody?.hero === "string" && Array.isArray(fBody?.more) && fBody.more.length === 4 && typeof fBody?.reason === "string",
+    JSON.stringify(fBody)?.slice(0, 120),
+  );
+  check(
+    "featured slate has no duplicates",
+    new Set([fBody?.hero, ...(fBody?.more ?? [])]).size === 1 + (fBody?.more?.length ?? 0),
+  );
+  const again = await json("/v1/featured");
+  check("slate is stable within the hour", again.body?.hero === fBody?.hero && JSON.stringify(again.body?.more) === JSON.stringify(fBody?.more));
   const spec = await json("/v1/openapi.json");
   const paths = spec.body?.paths ?? {};
   const expected = ["/v1/apps", "/v1/apps/{app_id}", "/v1/apps/{app_id}/reviews", "/v1/reviews/{id}", "/v1/categories", "/v1/featured", "/v1/auth/magic-link", "/v1/auth/verify", "/v1/auth/logout", "/v1/me"];

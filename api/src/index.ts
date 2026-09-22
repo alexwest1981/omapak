@@ -12,7 +12,6 @@ import type {
   CatalogEntry,
   CategoryCount,
   CategoryId,
-  Featured,
   FlathubEntry,
   Rating,
   Review,
@@ -303,31 +302,81 @@ v1.get("/categories", async (c) => {
 });
 
 /**
- * Featured hero. Deterministic: the top-rated published omapak apps (certified
- * first, then judge advisory average), rotated daily. No editorial state to
- * drift; the desktop app and the website derive the same hero.
+ * Featured slate: one hero + four grid picks, randomized hourly, weighted so
+ * quality rises and popularity compounds. Every eligible app (published,
+ * icon'd omapak entries) carries a weight:
+ *
+ *   judge advisory 0–5            → base, so empty store still ranks by quality
+ *   +2 when certified             → hard gates matter
+ *   + review signal, capped at 3  → community ratings, damped so a single
+ *                                    5★ rating can't hijack the slot:
+ *                                    signal = average/5 × min(ratings, 12)
+ *
+ * Weighted sampling without replacement picks 5 (hero first). The hour-seeded
+ * PRNG makes the slate deterministic for an hour — the desktop app and every
+ * browser agree on it — then re-rolls. Future hook: install counts can join
+ * the weight once the API can observe them (see api/README.md).
  */
 v1.get("/featured", async (c) => {
   const { omapak } = await loadSummaries(c.env);
-  const rated = omapak
-    .filter((a) => a.verdict === "published" && typeof a.advisory_average === "number")
-    .sort(
-      (a, b) =>
-        Number(b.certified) - Number(a.certified) ||
-        (b.advisory_average ?? 0) - (a.advisory_average ?? 0) ||
-        a.name.localeCompare(b.name),
-    )
-    .slice(0, 5);
-  const pool = rated.length ? rated : omapak.filter((a) => a.verdict === "published").slice(0, 5);
-  if (!pool.length) return c.json({ error: "no apps to feature" }, 404);
+  const eligible = omapak.filter(
+    (a) => a.verdict === "published" && a.icon && a.source === "omapak",
+  );
+  if (!eligible.length) return c.json({ error: "no apps to feature" }, 404);
 
-  const day = Math.floor(Date.now() / 86_400_000);
-  const featured: Featured = {
-    app_id: pool[day % pool.length]!.app_id,
-    reason: "top-rated omapak apps, rotating daily",
-  };
-  return c.json(featured);
+  const ratings = await ratingAggregates(
+    c.env.DB,
+    eligible.map((a) => a.app_id),
+  );
+  const weights = new Map<string, number>();
+  for (const a of eligible) {
+    const judge = a.advisory_average ?? 2.5;
+    const cert = a.certified ? 2 : 0;
+    const rating = ratings.get(a.app_id);
+    const popularity = rating ? (rating.average / 5) * Math.min(rating.count, 12) : 0;
+    weights.set(a.app_id, Math.max(0.1, judge + cert + popularity));
+  }
+
+  const hour = Math.floor(Date.now() / 3_600_000);
+  const slate = weightedSample(
+    eligible.map((a) => a.app_id),
+    (id) => weights.get(id) ?? 0.1,
+    5,
+    mulberry32(hour),
+  );
+  if (!slate.length) return c.json({ error: "no apps to feature" }, 404);
+
+  return c.json({ hero: slate[0], more: slate.slice(1), reason: "quality-weighted, refreshed hourly" });
 });
+
+/** Deterministic PRNG (mulberry32) — same slate for every caller this hour. */
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Weighted sample without replacement. */
+function weightedSample<T>(items: T[], weightOf: (t: T) => number, k: number, rand: () => number): T[] {
+  const pool = items.slice();
+  const picked: T[] = [];
+  while (picked.length < k && pool.length) {
+    const weights = pool.map(weightOf);
+    const total = weights.reduce((a, b) => a + b, 0);
+    let roll = rand() * total;
+    let idx = 0;
+    for (; idx < pool.length - 1; idx++) {
+      roll -= weights[idx]!;
+      if (roll <= 0) break;
+    }
+    picked.push(pool.splice(idx, 1)[0]!);
+  }
+  return picked;
+}
 
 // ── Auth & profile ──────────────────────────────────────────────────────────
 
