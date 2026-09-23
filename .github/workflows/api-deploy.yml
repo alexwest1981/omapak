@@ -1,0 +1,84 @@
+name: api-deploy
+
+on:
+  push:
+    branches: [main]
+    paths: ["api/**", ".github/workflows/api-deploy.yml"]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Typecheck
+        working-directory: api
+        run: |
+          bun install --frozen-lockfile
+          bun run typecheck
+
+      # ── One-time infra, idempotent on every run ─────────────────────────────
+
+      - name: Bootstrap D1 database (create if missing, pin the real id)
+        working-directory: api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          # create if missing (tolerate "already exists"), then pin the id
+          # from the REST API — wrangler resolves names against the toml, so
+          # a placeholder id there breaks `d1 info` (chicken-and-egg).
+          bunx wrangler d1 create omapak-api || true
+          ID=$(curl -sf -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/d1/database" \
+            | jq -r '.result[] | select(.name == "omapak-api") | .uuid')
+          if [ -z "$ID" ] || [ "$ID" = "null" ]; then
+            echo "could not resolve D1 database id"; exit 1
+          fi
+          echo "omapak-api D1 id: $ID"
+          sed -i "s/^database_id = .*/database_id = \"$ID\"/" wrangler.toml
+
+      - name: Apply D1 migrations
+        working-directory: api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: bunx wrangler d1 migrations apply omapak-api --remote
+
+      - name: Deploy the api worker
+        working-directory: api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: bunx wrangler deploy
+
+      - name: Bootstrap worker secrets
+        working-directory: api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: |
+          # Session signing key: generated once, kept server-side only.
+          # Losing it just invalidates sessions — no other state depends on it.
+          if ! bunx wrangler secret list | grep -q '"SESSION_SECRET"'; then
+            openssl rand -hex 32 | tr -d '\n' | bunx wrangler secret put SESSION_SECRET
+            echo "SESSION_SECRET generated"
+          fi
+          if [ -n "$RESEND_API_KEY" ]; then
+            printf '%s' "$RESEND_API_KEY" | bunx wrangler secret put RESEND_API_KEY
+            echo "RESEND_API_KEY uploaded"
+          else
+            echo "::warning::RESEND_API_KEY GitHub secret is not set — sign-in emails return 503 until it is (api/README.md → production setup)"
+          fi
+
+      - name: Smoke check
+        run: |
+          for i in 1 2 3 4 5; do
+            if curl -sf https://api.omapak.org/healthz; then echo; exit 0; fi
+            sleep 15
+          done
+          echo "::warning::https://api.omapak.org/healthz not answering yet (DNS propagation?)"

@@ -2,13 +2,14 @@ submitter: joniler
 source_repo: https://github.com/outcrop-labs/talaria
 summary: Official desktop client for the workspace where agents work as teammates
 description: >-
-  Builds Talaria Desktop from source at tag v0.1.0: the Svelte/Vite frontend
-  is compiled offline from a vendored bun cache (node-sources.json) and the
-  Tauri v2 shell from vendored crates (cargo-sources.json), linked against
-  the WebKitGTK 4.1 that org.gnome.Platform//50 carries. Rust 1.97.1 and
-  bun 1.4.0 enter as sha-pinned source modules. custom-protocol.patch plus
-  cargo --features custom-protocol embed the launcher; without that the
-  webview loads localhost:5290. Store listing and homepage follow talariaworks.ai.
+  Builds Talaria Desktop from source at tag desktop-v0.6.0: the Svelte/Vite
+  frontend is compiled offline from a vendored bun cache (node-sources.json)
+  and the Tauri v2 shell from vendored crates (cargo-sources.json), linked
+  against the WebKitGTK 4.1 that org.gnome.Platform//50 carries. Rust 1.97.1
+  and bun 1.4.0 enter as sha-pinned source modules. cargo --features
+  custom-protocol embeds the launcher — the feature is defined upstream
+  (talaria#396), so the patch the 0.1.0 build needed is gone. Store listing
+  and homepage follow talariaworks.ai.
 license: MIT
 homepage: https://talariaworks.ai
 tags: [business, utility]

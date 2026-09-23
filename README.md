@@ -2,13 +2,13 @@
 
 The open Flatpak repo. **Grade the app on its own merits.**
 
-**[omapak.org](https://omapak.org)** · [mission](https://omapak.org/mission) · [catalog](https://omapak.org/) · [rubric](https://omapak.org/rubric) · [submit an app](https://omapak.org/submit) · [repo.omapak.org](https://repo.omapak.org)
+**[omapak.org](https://omapak.org)** · [mission](https://omapak.org/mission) · [apps](https://omapak.org/apps) · [rubric](https://omapak.org/rubric) · [submit an app](https://omapak.org/submit) · [repo.omapak.org](https://repo.omapak.org)
 
 I built this because Flathub decided in May 2026 that new apps get banned if AI
 had anything to do with them. Even one commit. That's a dumb rule, and I'd
 rather build the alternative than argue with people who won't have a fair
-conversation about it. Normal people don't give a shit how something was built
-if it works well and fits their needs. Neither do we.
+conversation about it. Normal people don't care how something was built if it
+works well and fits their needs. Neither do we.
 
 So: every submission gets scored by an [agent judge](https://omapak.org/rubric)
 we build in the open, every report is public, and a human makes the merge call.
@@ -33,6 +33,7 @@ crates/omapak-judge/    the judge: static checks → real build → agent rubric
 apps/<app-id>/          submissions: your manifest + metadata.yml
 fixtures/testapp/       fixture app I use to beat on the pipeline
 web/                    omapak.org: SvelteKit + Mercury
+api/                    api.omapak.org: accounts, reviews, the v1 store API
 deploy/r2.sh            pushes the signed repo to Cloudflare R2
 omapak.flatpakrepo      what users install with
 ```
@@ -90,17 +91,21 @@ builds every merged app, signs the summary, keeps repo state on the `repo`
 branch, and syncs to R2. Secrets it wants: `OMAPAK_LLM_*`, `OMAPAK_GPG_KEY`,
 `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, plus vars `R2_ENDPOINT`/`R2_BUCKET`.
 
-## The site
+## The site & the store API
 
 ```
-cd web
-bun install
-bun run sync-rubric && bun run build-catalog --with-fixtures
-bun run dev
+cd web && bun install
+bun run sync-rubric && bun run build-catalog --with-fixtures && bun run dev   # omapak.org
+cd ../api && bun install && cp .dev.vars.example .dev.vars
+bun run migrate:local && bun run seed:local && bun run dev                   # api.omapak.org (local)
 ```
 
-The dev server runs against live `repo.omapak.org` data. Data flow, script
-reference, and headless-verification gotchas: [web/README.md](web/README.md).
+The site is a store now: accounts (email magic links), reviews, categories,
+a featured hero. The homepage explains what omapak is; the catalog lives at
+`/apps`. Everything store-related populates from `api.omapak.org/v1` — the
+same contract the omapak desktop app will drink from. API reference and
+local-dev setup: [api/README.md](api/README.md). Web data flow and
+headless-verification gotchas: [web/README.md](web/README.md).
 
 ## License
 

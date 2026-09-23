@@ -22,26 +22,35 @@ catalog that mirrors exactly what `apps/` contains.
 generated data is always current after a pull — run `bun run build-catalog
 --with-fixtures` once if you want the fixture app in the fallback catalog.
 
+The dev server talks to `http://localhost:8787` (see `.env.development`) —
+start the store API locally with `cd ../api && bun run dev` if you want
+accounts/reviews against your machine; otherwise it falls back to static
+data and reviews show their offline state.
+
 ## Where the data comes from
 
-The dev site runs against **live production data** by default:
+Store pages (`/apps`, `/app/<id>`, reviews, sign-in) populate from
+**api.omapak.org/v1** — the same contract the future desktop app uses
+(see `../api/README.md`). Everything falls back to static data when the API
+is unreachable, so offline still renders:
 
-| Query (`src/lib/queries.ts`) | Primary | Fallback |
+| Query (`src/lib/api/queries.ts`) | Primary | Fallback |
 |---|---|---|
-| catalog | `https://repo.omapak.org/data/catalog.json` | `/data/catalog.json` (static) |
-| app report | `https://repo.omapak.org/reports/<id>.json` | `/data/reports/<id>.json` (static) |
-| flathub index | — | `/data/flathub.json` (static, always) |
+| apps list / app detail / categories / featured | `https://api.omapak.org/v1/apps…` | static `/data/catalog.json` + `/data/flathub.json`, normalized client-side |
+| reviews (read/write), `/v1/me`, magic-link auth | `https://api.omapak.org/v1/…` | none — reviews show an offline note |
+| app report (judge accordion) | `https://repo.omapak.org/reports/<id>.json` | `/data/reports/<id>.json` (static) |
+| homepage stats | `https://repo.omapak.org/data/catalog.json` | `/data/catalog.json` (static) |
 
-The worker serves R2 verbatim with `CORS: *`, so localhost fetches work.
-Consequences:
+API base comes from `VITE_API_BASE` (`https://api.omapak.org` in prod,
+`http://localhost:8787` in dev via `.env.development`). Consequences:
 
 - The static fallback is only as fresh as your last `build-catalog` run —
-  `bun run build` does **not** regenerate `static/data/`. If the live worker
-  is unreachable (or you're fully offline) you see stale local data, not an
-  error.
-- `static/data/flathub.json` (~900KB, the pass-through Flathub listing) is
-  refreshed by `bun run build-flathub-index` — 24h cache by default,
-  `--force` to ignore, `--limit 50` for a quick dev iteration.
+  `bun run build` does **not** regenerate `static/data/`.
+- `static/data/flathub.json` (~900KB, the pass-through Flathub listing, with
+  appstream categories) is refreshed by `bun run build-flathub-index` — 24h
+  cache by default, `--force` to ignore, `--limit 50` for quick dev
+  iteration, `--push` to also upload it to R2 (`data/flathub.json`) for the
+  API worker (CI does this on every site deploy).
 
 ## Scripts
 
@@ -53,8 +62,7 @@ Consequences:
 | `typecheck` | svelte-check |
 | `sync-rubric` | regenerates `src/lib/generated/rubric.ts` from `crates/omapak-judge/src/prompt.rs` |
 | `build-catalog [--with-fixtures]` | regenerates `static/data/catalog.json` + report JSONs from `apps/` (and `fixtures/`) |
-| `build-flathub-index [--force] [--limit N]` | refreshes the Flathub pass-through index |
-| `push-catalog` | **CI only** — PUTs the catalog to R2 via the Cloudflare API; needs `CLOUDFLARE_API_TOKEN` |
+| `build-flathub-index [--force] [--limit N] [--push]` | refreshes the Flathub pass-through index (categories included) |
 
 ## Verifying changes headlessly (traps)
 

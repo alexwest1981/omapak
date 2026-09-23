@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-17T16:39:01.475Z",
+  "generated_at": "2026-09-22T17:23:32.575Z",
   "entries": [
     {
       "app_id": "app.geolibre.GeoLibre",
@@ -34,6 +34,42 @@
       "license": "MIT",
       "homepage": "https://geolibre.app/",
       "tags": [
+        "utility"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "app.talaria.desktop",
+      "name": "Talaria",
+      "icon": "https://repo.omapak.org/icons/app.talaria.desktop.png",
+      "developer": "Outcrop Labs",
+      "description": [
+        "This is the official desktop client for Talaria. Talaria is one workspace\n      where the whole day actually happens: chat, boards, docs, plans, research.\n      Agents work in it as real teammates, in your channels and on your tickets.\n      Humans approve.",
+        "Add a hosted or self-hosted instance by URL. Switch between them in a\n      click. Each one keeps its own saved session.",
+        [
+          "Add hosted or self-hosted instances by URL",
+          "Switch workspaces in a click",
+          "Each instance keeps its own saved session"
+        ]
+      ],
+      "urls": {
+        "homepage": "https://talariaworks.ai",
+        "bugtracker": "https://github.com/outcrop-labs/talaria/issues",
+        "vcs-browser": "https://github.com/outcrop-labs/talaria"
+      },
+      "bugtracker": "https://github.com/outcrop-labs/talaria/issues",
+      "help": null,
+      "screenshots": [],
+      "summary": "Official desktop client for the workspace where agents work as teammates",
+      "submitter": "joniler",
+      "source_repo": "https://github.com/outcrop-labs/talaria",
+      "license": "MIT",
+      "homepage": "https://talariaworks.ai",
+      "tags": [
+        "business",
         "utility"
       ],
       "source_access": "public",
@@ -345,7 +381,11 @@
       },
       "bugtracker": "https://github.com/alexwest1981/NovaCut/issues",
       "help": null,
-      "screenshots": [],
+      "screenshots": [
+        "https://raw.githubusercontent.com/alexwest1981/NovaCut/ab0af3421af97487f88cf51dd60b57b0bcf48bba/screenshots/project-hub.png",
+        "https://raw.githubusercontent.com/alexwest1981/NovaCut/ab0af3421af97487f88cf51dd60b57b0bcf48bba/screenshots/editor.png",
+        "https://raw.githubusercontent.com/alexwest1981/NovaCut/ab0af3421af97487f88cf51dd60b57b0bcf48bba/screenshots/text-studio.png"
+      ],
       "summary": "CapCut-style video editor with a multi-track timeline and plugin marketplace",
       "submitter": "alexwest1981",
       "source_repo": "https://github.com/alexwest1981/NovaCut",
@@ -421,7 +461,8 @@
           "Ad blocking at the request level, plus cosmetic filtering of sponsored shelves and banners, and skipping of pre-roll and mid-roll ads",
           "SponsorBlock segment skipping, with the segments marked on the progress bar and an on-screen \"unskip\" button",
           "Return YouTube Dislike counts on the player",
-          "Hardware-accelerated video decode (VA-API)"
+          "Hardware-accelerated video decode (VA-API)",
+          "Its own browsing grid as the start screen — seven columns of cards at 1920x1080 where the leanback view shows one row of four — with search and arrow-key navigation"
         ],
         "The app talks to three services and no others: YouTube, the SponsorBlock API and\n      the Return YouTube Dislike API. It sends no telemetry and has no analytics. It is an\n      independent client and is not affiliated with, endorsed by, or built by YouTube."
       ],
@@ -432,7 +473,9 @@
       },
       "bugtracker": "https://github.com/alexwest1981/OmarchyTube/issues",
       "help": null,
-      "screenshots": [],
+      "screenshots": [
+        "https://raw.githubusercontent.com/alexwest1981/OmarchyTube/2ab3602dd2709f8b1b6dcbb46e8d4fcfeff996f7/screenshots/browse-1920x1080.png"
+      ],
       "summary": "Full-screen YouTube client with ad blocking and SponsorBlock",
       "submitter": "alexwest1981",
       "source_repo": "https://github.com/alexwest1981/OmarchyTube",
@@ -572,6 +615,39 @@
       "tags": [
         "office",
         "utility"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "io.github.brdweb.MaTui",
+      "name": "MA-TUI",
+      "icon": "https://repo.omapak.org/icons/io.github.brdweb.MaTui.png",
+      "developer": "brdweb",
+      "description": [
+        "MA-TUI is a terminal interface for Music Assistant: browse your library and\n      providers, control playback, volume, grouping and queues across your\n      networked speakers, and follow podcasts and audiobooks with resume points\n      and played-episode tracking. It also registers the machine it runs on as a\n      Sendspin speaker, so Music Assistant can send audio there directly, without\n      a separate companion player process."
+      ],
+      "urls": {
+        "homepage": "https://github.com/brdweb/ma-tui",
+        "bugtracker": "https://github.com/brdweb/ma-tui/issues"
+      },
+      "bugtracker": "https://github.com/brdweb/ma-tui/issues",
+      "help": null,
+      "screenshots": [
+        "https://raw.githubusercontent.com/brdweb/ma-tui/main/docs/images/screenshot.png"
+      ],
+      "summary": "Terminal controller and local speaker for Music Assistant",
+      "submitter": "brdweb",
+      "source_repo": "https://github.com/brdweb/ma-tui",
+      "license": "MIT",
+      "homepage": "https://github.com/brdweb/ma-tui",
+      "tags": [
+        "terminal",
+        "music",
+        "audio",
+        "music-assistant"
       ],
       "source_access": "public",
       "verdict": "published",
@@ -915,6 +991,51 @@
       "report_available": false
     },
     {
+      "app_id": "io.github.unTanana.oma-audio-books",
+      "name": "Oma Audiobooks",
+      "icon": "https://repo.omapak.org/icons/io.github.unTanana.oma-audio-books.png",
+      "developer": "unTanana",
+      "description": [
+        "A native audiobook library and player for Linux, built with Qt Quick.\n    Add your own DRM-free MP3 book folders or M4B files, browse by series,\n    and continue listening where you left off.",
+        [
+          "Saved listening progress, bookmarks, favorites and completion status",
+          "Series grouping, search, library filters and editable book details",
+          "Chapter navigation and timeline previews, playback speed and sleep timer",
+          "Keyboard shortcuts and desktop media controls",
+          "Omarchy theme integration and built-in dark and light appearances"
+        ],
+        "No account, server, telemetry or network connection is required. Audio\n    files remain unchanged. Books are not included; this app does not download\n    Audible books or remove DRM."
+      ],
+      "urls": {
+        "homepage": "https://github.com/unTanana/oma-audio-books",
+        "bugtracker": "https://github.com/unTanana/oma-audio-books/issues",
+        "vcs-browser": "https://github.com/unTanana/oma-audio-books"
+      },
+      "bugtracker": "https://github.com/unTanana/oma-audio-books/issues",
+      "help": null,
+      "screenshots": [
+        "https://raw.githubusercontent.com/unTanana/oma-audio-books/68da5d5a354e4cc766a3b8b09b9cc196bf111347/docs/screenshots/library.png",
+        "https://raw.githubusercontent.com/unTanana/oma-audio-books/68da5d5a354e4cc766a3b8b09b9cc196bf111347/docs/screenshots/details.png",
+        "https://raw.githubusercontent.com/unTanana/oma-audio-books/68da5d5a354e4cc766a3b8b09b9cc196bf111347/docs/screenshots/light-library.png"
+      ],
+      "summary": "Listen to local audiobooks and keep your place",
+      "submitter": "unTanana",
+      "source_repo": "https://github.com/unTanana/oma-audio-books",
+      "license": "MIT",
+      "homepage": "https://github.com/unTanana/oma-audio-books",
+      "tags": [
+        "audio",
+        "audiobooks",
+        "player",
+        "qt",
+        "omarchy"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
       "app_id": "io.github.wusel1007.clamav-gui",
       "name": "ClamAV-GUI",
       "icon": "https://repo.omapak.org/icons/io.github.wusel1007.clamav-gui.png",
@@ -992,6 +1113,41 @@
         "network",
         "file-sharing",
         "p2p"
+      ],
+      "source_access": "public",
+      "verdict": "published",
+      "certified": false,
+      "report_available": false
+    },
+    {
+      "app_id": "me.chocolateimage.graphics-creator",
+      "name": "Graphics Creator",
+      "icon": "https://repo.omapak.org/icons/me.chocolateimage.graphics-creator.png",
+      "developer": "chocolateimage",
+      "description": [
+        "Graphics Creator is a Qt-based tool for building animated titles and\n      visual effects on a keyframe timeline: strokes, color and font\n      mixing, long shadows, waves, text animators and easing curves.",
+        "Projects render to animated graphics suitable for video overlays and\n      titles. Works alongside the author's other creative tools and ships\n      an AUR package for Arch users."
+      ],
+      "urls": {
+        "homepage": "https://github.com/chocolateimage/graphics-creator",
+        "bugtracker": "https://github.com/chocolateimage/graphics-creator/issues"
+      },
+      "bugtracker": "https://github.com/chocolateimage/graphics-creator/issues",
+      "help": null,
+      "screenshots": [
+        "https://party.playlook.de/public/graphics-creator/mixing.png",
+        "https://party.playlook.de/public/graphics-creator/stroke.png",
+        "https://party.playlook.de/public/graphics-creator/long-shadow.png",
+        "https://party.playlook.de/public/graphics-creator/wave.gif"
+      ],
+      "summary": "Create titles and visual effects with keyframes",
+      "submitter": "jon",
+      "source_repo": "https://github.com/chocolateimage/graphics-creator",
+      "license": "GPL-3.0",
+      "homepage": "https://github.com/chocolateimage/graphics-creator",
+      "tags": [
+        "graphics",
+        "utility"
       ],
       "source_access": "public",
       "verdict": "published",

@@ -1,0 +1,22 @@
+{
+  "name": "omapak-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "migrate:local": "wrangler d1 migrations apply omapak-api --local",
+    "migrate": "wrangler d1 migrations apply omapak-api --remote",
+    "seed:local": "node scripts/seed-local.mjs",
+    "e2e": "node scripts/e2e.mjs"
+  },
+  "dependencies": {
+    "hono": "^4.9.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4",
+    "typescript": "^5.7.2",
+    "wrangler": "^4.42.0"
+  }
+}

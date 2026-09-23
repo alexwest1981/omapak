@@ -6,12 +6,19 @@ and rclone's CopyObject isn't implemented by R2. boto3's upload_file
 sends a simple PUT which R2 fully supports.
 
 Ordering invariant: content-addressed objects and refs upload first, and
-the summary only replaces the live one after every object it references
-is in the bucket — a summary naming missing objects breaks clients
-mid-publish. Any upload failure aborts before the summary flips.
+the composer's input (summary-base) only replaces the previous one after
+every object it references is in the bucket — a summary naming missing
+objects breaks clients. Any upload failure aborts before it flips.
+
+The live summary pair is NOT published here: the composer
+(.github/workflows/compose.yml) owns it, merging this run's summary-base
+with flathub's live catalog and signing the result. That keeps the
+flathub half of the catalog fresh between publishes and leaves no window
+where a publish replaces the composed document with an omapak-only one.
 """
 import os
 import sys
+import hashlib
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -36,14 +43,18 @@ s3 = boto3.client(
 )
 
 # Content-addressed ostree objects are immutable; skip re-uploading the
-# ~12k flathub ref/commit files that are already in the bucket. The
-# summary pair always re-uploads (phase 2).
-ALWAYS_PUSH = {"summary", "summary.sig", "omapak.flatpakrepo"}
+# ~12k flathub commit files already in the bucket. Everything else that
+# is mutable re-uploads: summary-base (phase 2), and refs/ — every ref
+# file is exactly 65 bytes, so the old size-match dedup silently skipped
+# changed refs forever. Bucket refs sat at days-old commits while
+# summary and objects moved on (2026-09-19: clients pulling the stale
+# summary entries hit "Update is older than current version").
+ALWAYS_PUSH = {"summary-base", "omapak.flatpakrepo"}
 
 existing = {}
 for page in s3.get_paginator("list_objects_v2").paginate(Bucket=BUCKET):
     for obj in page.get("Contents", []):
-        existing[obj["Key"]] = obj["Size"]
+        existing[obj["Key"]] = (obj["Size"], obj.get("ETag", "").strip('"'))
 
 pending = []
 finals = []
@@ -52,11 +63,39 @@ for root, _, files in os.walk(REPO):
     for f in files:
         local = os.path.join(root, f)
         key = os.path.relpath(local, REPO)
+        # The live pair belongs to the composer; publishing this run's
+        # copy here would replace the merged catalog with an
+        # omapak-only document until the next compose tick.
+        if key in ("summary", "summary.sig"):
+            continue
         if key in ALWAYS_PUSH:
             finals.append((local, key))
-        elif existing.get(key) == os.path.getsize(local):
-            skipped += 1
         else:
+            # Content-hash dedup: for single-part uploads (everything
+            # under 8MB — every ref file and every commit object) the
+            # S3 ETag is the MD5 of the bytes, so an ETag match proves
+            # the remote copy is byte-identical and the upload can be
+            # skipped. Size alone was never sound: mutable 65-byte ref
+            # files made the first version of this dedup freeze every
+            # ref in the bucket at days-old commits while summaries and
+            # objects moved on (2026-09-19), and after that fix refs
+            # re-uploaded unconditionally (~12k PUTs, an hour of every
+            # publish) because size looked equal-but-content-different.
+            # Big files (multipart, ETag not an MD5) keep the size
+            # check: content-addressed objects can't collide on size
+            # with different content without a SHA-256 break.
+            size, etag = existing.get(key, (None, ""))
+            local_size = os.path.getsize(local)
+            if size == local_size and size is not None:
+                if size < 8 * 1024 * 1024:
+                    with open(local, "rb") as fh:
+                        digest = hashlib.md5(fh.read()).hexdigest()
+                    if etag == digest:
+                        skipped += 1
+                        continue
+                else:
+                    skipped += 1
+                    continue
             pending.append((local, key))
 
 print(f"to push: {len(pending)} objects/refs + {len(finals)} summary files "
@@ -105,5 +144,26 @@ for local, key in finals:
     s3.upload_file(local, BUCKET, key)
     print(f"pushed {key}")
 
+# This run's summary is the composer's input. It never reaches clients
+# under its own name: the composer merges it with flathub's live summary
+# and publishes the result as `summary` + `summary.sig`.
+summary_local = os.path.join(REPO, "summary")
+if not os.path.exists(summary_local):
+    print("::error::no summary in repo to publish as summary-base", file=sys.stderr)
+    sys.exit(1)
+s3.upload_file(summary_local, BUCKET, "summary-base")
+print("pushed summary-base (composer input)")
+
 s3.upload_file(str(ROOT / "omapak.flatpakrepo"), BUCKET, "omapak.flatpakrepo")
 print("pushed omapak.flatpakrepo (current signing key)")
+
+# Advance the publish marker last, after the summary flipped: it names
+# the commit whose apps are fully in the bucket. The workflow only sets
+# OMAPAK_ADVANCE_MARKER when every build succeeded, so a run with
+# failed apps leaves the marker where it was and the next run
+# re-attempts them.
+if os.environ.get("OMAPAK_ADVANCE_MARKER") == "1":
+    sha = os.environ.get("GITHUB_SHA", "").strip()
+    if sha:
+        s3.put_object(Bucket=BUCKET, Key="state/last-published", Body=sha.encode())
+        print(f"advanced state/last-published -> {sha}")

@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "omapak catalog — the open Flatpak repository. SvelteKit + Mercury.",
+  "description": "omapak catalog \u2014 the open Flatpak repository. SvelteKit + Mercury.",
   "scripts": {
     "predev": "node scripts/sync-rubric.mjs && node scripts/build-catalog.mjs",
     "dev": "vite dev --port 5217",
@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json",
     "sync-rubric": "node scripts/sync-rubric.mjs",
-    "build-catalog": "node scripts/build-catalog.mjs"
+    "build-catalog": "node scripts/build-catalog.mjs",
+    "build-flathub-index": "node scripts/build-flathub-index.mjs"
   },
   "engines": {
     "node": ">=22"

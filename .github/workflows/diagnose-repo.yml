@@ -1,0 +1,43 @@
+name: diagnose-repo
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install flatpak tooling
+        run: sudo apt-get update && sudo apt-get install -y flatpak ostree
+      - name: Restore repo refs from R2
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          mkdir -p repo/refs/heads repo/objects repo/refs/remotes repo/refs/mirrors repo/extensions
+          printf '[core]\nrepo_version=1\nmode=archive-z2\n' > repo/config
+          pip install -q boto3
+          python3 deploy/pull-from-r2.py repo
+      - name: Replicate merge step verbatim, errors visible
+        run: |
+          set -x
+          curl -sO https://dl.flathub.org/repo/flathub.flatpakrepo
+          grep '^GPGKey=' flathub.flatpakrepo | cut -d= -f2- | base64 -d > flathub-keyring.gpg
+          ostree remote add --repo=repo --gpg-import=flathub-keyring.gpg \
+            flathub https://dl.flathub.org/repo/ 2>/dev/null || true
+          flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak --version
+          echo "== raw remote-ls bytes (first 3) =="
+          flatpak --user remote-ls --all --columns=ref,commit flathub | grep -E '^(app|runtime)/' | head -3 | cat -A
+          echo "== match test (first 5) =="
+          flatpak --user remote-ls --all --columns=ref,commit flathub | grep -E '^(app|runtime)/' | head -5 > /tmp/refpairs.txt
+          cat /tmp/refpairs.txt
+          while IFS=$'\t' read -r ref sha; do
+            mf=$(find repo/refs/mirrors -type f -path "*/$ref" 2>/dev/null | head -1)
+            printf '%s -> mf=[%s] content=[%s] expected=[%s]\n' "$ref" "${mf:-NONE}" "$([ -n "$mf" ] && cat "$mf")" "$sha"
+          done < /tmp/refpairs.txt
+          set +x

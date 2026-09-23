@@ -1,19 +1,33 @@
 submitter: alexwest1981
 source_repo: https://github.com/alexwest1981/sonix
-summary: Sonix Studio, a native Linux digital audio workstation
+summary: An FL Studio-style DAW for Linux — step sequencer, multitrack recording and stem separation in one binary
 description: >-
-  Alex's own DAW, submitted by its author. Sonix Studio is a Rust/egui
-  digital audio workstation for Linux: direct timeline audio editing with
-  magnetic loop snapping, a 16-step channel rack, piano roll, an integrated
-  synthesizer, a multichannel effects mixer, Vocal Studio recording, stem
-  separation and a CLAP/VST3/VST2 plugin host. Audio runs through cpal/ALSA
-  (PipeWire through its ALSA layer). The manifest repacks the project's own
-  release tarball — the x86-64 build with plugin-host, stripped, linking only
-  libasound beyond libc — so the flatpak ships the same bytes the Releases
-  page hands out. Optional features that are not in that binary (neural stem
-  separation behind a build feature and a user-supplied model, and LV2
-  loading, which has no host yet) are stated in the README and in the
-  metainfo rather than quietly implied.
+  Alex's own DAW, submitted by its author. Sonix Studio is a Rust/egui digital
+  audio workstation for Linux built around the FL Studio way of working:
+  direct timeline audio editing with magnetic loop snapping, a 16-step channel
+  rack, piano roll and pattern-based composition. The parts the rack-style
+  DAWs on Linux leave out are in the same application: multitrack microphone
+  recording with take lanes (Vocal Studio) and offline stem separation with a
+  stem focus editor. Everything the interface advertises is wired to real DSP,
+  including the parts that are still rough. The project's own CI builds and
+  tests it on Linux and Windows on every push.
+  The manifest repacks the project's own release tarball — the x86-64 build
+  with plugin-host, stripped, linking only libasound beyond libc — instead of
+  compiling it here, so the flatpak ships the same bytes the Releases page
+  hands out. Upstream publishes that tarball for x86-64 only, which is why
+  only-arches says x86-64: there is no aarch64 asset to package.
+  Network: --share=network exists for exactly one optional feature, the AI
+  music assistant and its speech synthesis, which talk to an endpoint the user
+  configures themselves (OpenAI, Anthropic, OpenRouter, or a local
+  Ollama/OpenAI-compatible server on the host; the key lives in the app's own
+  config). There is no telemetry, no update check and no account, and nothing
+  is sent anywhere unless the assistant is asked to run. Editing, stem
+  separation, plugin scanning and export are entirely local.
+  Two features are deliberately opt-in rather than shipped: neural stem
+  separation (needs a build with the neural feature plus a user-supplied
+  HTDemucs model — the DSP separator is what runs without one) and LV2 plugin
+  loading, which has no host yet. The project's README and the metainfo state
+  that rather than implying otherwise.
 license: MIT OR Apache-2.0
 homepage: https://github.com/alexwest1981/sonix
 tags: [audio, music, daw]

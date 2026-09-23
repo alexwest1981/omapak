@@ -60,6 +60,14 @@ pub struct SourceRef {
     /// tag, commit, or sha256 the source is pinned to, if any.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pinned: Option<String>,
+    /// `type:` from the manifest (archive, file, dir, git, inline, …).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub kind: Option<String>,
+    /// Path of a source that ships in the app dir itself (`type: file`/`dir`).
+    /// Without it those sources carried nothing at all and reported as `{}`,
+    /// which reads as an empty entry rather than as the local file it is.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub path: Option<String>,
 }
 
 /// Finish-args that punch holes in the sandbox. Advisory only — some apps
@@ -130,6 +138,8 @@ pub fn parse_manifest(text: &str) -> anyhow::Result<ManifestInfo> {
                                     Some(SourceRef {
                                         url: s.get("url").and_then(|v| v.as_str()).map(String::from),
                                         pinned,
+                                        kind: s.get("type").and_then(|v| v.as_str()).map(String::from),
+                                        path: s.get("path").and_then(|v| v.as_str()).map(String::from),
                                     })
                                 })
                                 .collect()
@@ -370,5 +380,44 @@ modules:
         assert!(!m.modules[1].include);
         assert_eq!(m.modules[1].build_commands.len(), 2);
         assert!(m.modules[1].build_commands[1].contains("${FLATPAK_DEST}/bin/app"));
+    }
+
+    /// The bug this guards (seen in every published report for an app that
+    /// ships its own desktop file/icon/metainfo): a `type: file` source has no
+    /// `url` and no `sha256`, so it serialised as `{}` — and the report then
+    /// read as "three empty source entries" instead of naming the local files.
+    #[test]
+    fn local_file_sources_are_named_not_empty() {
+        const MIXED_YAML: &str = r#"
+app-id: io.example.Repack
+runtime: org.freedesktop.Platform
+runtime-version: "25.08"
+sdk: org.freedesktop.Sdk
+modules:
+  - name: repack
+    buildsystem: simple
+    sources:
+      - type: archive
+        url: https://example.com/app-1.0.tar.gz
+        sha256: 2c2957390a28c2acb8d80bd73600ff117b3afbc9ab1d35f7994880ab5cb8822e
+      - type: file
+        path: io.example.Repack.desktop
+      - type: file
+        path: io.example.Repack.metainfo.xml
+"#;
+        let m = parse_manifest(MIXED_YAML).unwrap();
+        let sources = &m.modules[0].sources;
+        assert_eq!(sources.len(), 3);
+        assert_eq!(sources[1].kind.as_deref(), Some("file"));
+        assert_eq!(sources[1].path.as_deref(), Some("io.example.Repack.desktop"));
+        assert_eq!(sources[1].url, None);
+
+        for s in sources {
+            let rendered = serde_json::to_string(s).unwrap();
+            assert_ne!(
+                rendered, "{}",
+                "a source rendered as an empty object — the model reads that as a sloppy manifest"
+            );
+        }
     }
 }

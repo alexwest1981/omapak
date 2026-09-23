@@ -74,6 +74,16 @@ jobs:
           bun run build-catalog
           bun run build
 
+      - name: Refresh flathub index and push to R2
+        # data/flathub.json (with appstream categories) is what
+        # api.omapak.org reads for flathub app detail/review validation.
+        # --force: site deploys are the only refresher. Must run before the
+        # Pages deploy so the fresh index ships inside the static bundle too.
+        working-directory: web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: bun run build-flathub-index --force --push
+
       - name: Deploy to Cloudflare Pages
         working-directory: web
         env:

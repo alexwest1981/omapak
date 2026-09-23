@@ -1,0 +1,36 @@
+name = "omapak-api"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+# Routing is the custom domain only (below); never a workers.dev subdomain.
+workers_dev = false
+
+# Serves api.omapak.org: the versioned JSON API the website and the future
+# desktop app both populate from. The repo proxy worker (worker/) keeps
+# repo.omapak.org a pure flatpak remote; this one owns accounts + reviews.
+# Routing is a Workers Custom Domain (api.omapak.org), attached once via the
+# accounts/:id/workers/domains API — no route in the toml, and deploys need
+# no zone-scoped token. See api/README.md.
+
+[[d1_databases]]
+binding = "DB"
+database_name = "omapak-api"
+# Id resolved by CI bootstrap (api-deploy.yml) via the REST API; pinned here after first creation.
+database_id = "5dd91e85-3937-4a21-99d1-682cab6f3995"
+
+# Read-only view of the same bucket the repo proxy serves: catalog.json,
+# flathub.json and reports/ live there, pushed by CI (web/scripts/push-catalog
+# and build-flathub-index --push). The API never writes to this bucket.
+[[r2_buckets]]
+binding = "REPO"
+bucket_name = "omapak-repo"
+
+[vars]
+API_ORIGIN = "https://api.omapak.org"
+SITE_ORIGIN = "https://omapak.org"
+MAIL_FROM = "Omapak <login@omapak.org>"
+# "" in production. "1" only in local dev (.dev.vars), where RESEND_API_KEY is
+# absent: the magic link is returned in the API response instead of emailed.
+ALLOW_DEV_LINKS = ""
+
+# Secrets (wrangler secret put …): SESSION_SECRET (32+ random chars),
+# RESEND_API_KEY (transactional email). See api/README.md.

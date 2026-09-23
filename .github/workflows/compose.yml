@@ -1,0 +1,122 @@
+name: compose
+
+# Merges omapak's own refs with flathub's live catalog and publishes the
+# result as the repo's summary — so the flathub half of the catalog stays
+# fresh between publishes, and every ref a client may hold with origin
+# omapak (extension refs like Locale above all) resolves from omapak's
+# summary alone. Runs here rather than in the Cloudflare worker because
+# the remote sets gpg-verify-summary=true: the merged summary must carry
+# a real GPG signature, and runners have gpg plus the existing signing
+# secret while a Worker would need sequoia-in-wasm and the private key
+# inside Cloudflare.
+#
+# dl.flathub.org only rate-limits bulk OBJECT fetching; a summary fetch
+# every 15 minutes is nothing, and this job never touches objects.
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repo-compose
+  cancel-in-progress: false
+
+jobs:
+  compose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build the composer
+        run: cargo build --release --manifest-path composer/Cargo.toml
+
+      - name: Fetch flathub's live summary
+        run: |
+          curl -sfL --retry 3 --max-time 120 \
+            https://dl.flathub.org/repo/summary -o flathub-summary
+          echo "flathub summary: $(wc -c < flathub-summary) bytes"
+
+      - name: Fetch the previous flathub summary and the omapak base
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          pip install -q boto3
+          python3 - <<'PY'
+          import os, boto3
+          from botocore.config import Config
+          s3 = boto3.client(
+              "s3",
+              endpoint_url=f"https://{os.environ.get('R2_ACCOUNT_ID', '7396d8475acc6c87ef13e97a617712f1')}.r2.cloudflarestorage.com",
+              aws_access_key_id=os.environ["R2_ACCESS_KEY_ID"],
+              aws_secret_access_key=os.environ["R2_SECRET_ACCESS_KEY"],
+              region_name="auto",
+              config=Config(retries={"max_attempts": 3, "mode": "adaptive"}),
+          )
+          for key, dest in (("composer/flathub-summary", "flathub-summary.prev"),
+                            ("summary-base", "summary-base")):
+              try:
+                  s3.download_file("omapak-repo", key, dest)
+                  print(f"fetched {key} ({os.path.getsize(dest)} bytes)")
+              except Exception as e:
+                  print(f"no {key}: {e}")
+          PY
+
+      - name: Skip when flathub's summary is unchanged
+        id: diff
+        run: |
+          if [ -f flathub-summary.prev ] && cmp -s flathub-summary flathub-summary.prev; then
+            echo "flathub summary unchanged — nothing to compose"
+            echo "changed=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=1" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Merge and sign
+        if: steps.diff.outputs.changed == '1'
+        env:
+          OMAPAK_GPG_KEY: ${{ secrets.OMAPAK_GPG_KEY }}
+        run: |
+          [ -s summary-base ] || { echo "::error::summary-base missing — publish once first"; exit 1; }
+          echo "$OMAPAK_GPG_KEY" | gpg --import
+          keyid=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec/{print $5; exit}')
+          ./composer/target/release/composer-merge \
+            --omapak summary-base --flathub flathub-summary \
+            --out summary --gpg-key "$keyid" --sig-out summary.sig
+          # Sanity: the merged catalog must contain the extension refs
+          # whose absence is the whole reason this job exists.
+          ls -la summary summary.sig
+
+      - name: Publish the composed summary
+        if: steps.diff.outputs.changed == '1'
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          python3 - <<'PY'
+          import os, boto3
+          from botocore.config import Config
+          s3 = boto3.client(
+              "s3",
+              endpoint_url=f"https://{os.environ.get('R2_ACCOUNT_ID', '7396d8475acc6c87ef13e97a617712f1')}.r2.cloudflarestorage.com",
+              aws_access_key_id=os.environ["R2_ACCESS_KEY_ID"],
+              aws_secret_access_key=os.environ["R2_SECRET_ACCESS_KEY"],
+              region_name="auto",
+              config=Config(retries={"max_attempts": 3, "mode": "adaptive"}),
+          )
+          # Objects and the previous summary first; the live pair flips
+          # last so clients never see a summary without its body present.
+          s3.upload_file("flathub-summary", "omapak-repo", "composer/flathub-summary")
+          s3.upload_file("summary", "omapak-repo", "summary")
+          s3.upload_file("summary.sig", "omapak-repo", "summary.sig")
+          # A stale signed .idx would fail gpg-verify-summary for every
+          # client (flatpak fetches summary.idx before summary).
+          for key in ("summary.idx", "summary.idx.sig"):
+              s3.delete_object(Bucket="omapak-repo", Key=key)
+          print("published composed summary + summary.sig")
+          PY

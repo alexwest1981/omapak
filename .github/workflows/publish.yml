@@ -50,6 +50,28 @@ jobs:
           [ -n "$(ls repo/refs/heads/app/ 2>/dev/null)" ] || \
             echo "::warning::no omapak refs restored — if this is not the first run, the restore failed"
 
+      - name: Drop refs with missing commit objects
+        run: |
+          # Exporting an app into the live repo regenerates the appstream
+          # branch by walking every ref in the repo, and it aborts hard on
+          # a ref whose commit object can't be loaded (assertion in
+          # _flatpak_repo_generate_appstream, run 35462539327: every build
+          # died with signal 6). The flathub merge tolerates pull
+          # failures, so refs with no commit object accumulate under
+          # refs/mirrors — the summary step only validates refs/heads.
+          # Drop them; the next run's flathub merge re-adds whichever
+          # pulls succeed, and an omapak app that loses its ref here gets
+          # rebuilt below (the skip requires the ref to exist).
+          dropped=0
+          for reffile in $(find repo/refs -type f); do
+            sha=$(cat "$reffile")
+            if [ ! -f "repo/objects/${sha:0:2}/${sha:2}.commit" ]; then
+              rm -f "$reffile"
+              dropped=$((dropped+1))
+            fi
+          done
+          echo "dropped $dropped refs with missing commit objects"
+
       - name: Cache flatpak builds
         uses: actions/cache@v4
         with:
@@ -118,21 +140,81 @@ jobs:
           OMAPAK_GPG_KEY: ${{ secrets.OMAPAK_GPG_KEY }}
         run: echo "$OMAPAK_GPG_KEY" | gpg --import
 
-      - name: Build all apps (cached, unchanged skip compile)
+      - name: Build changed apps (unchanged keep their published refs)
         id: build
         run: |
           keyid=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec/{print $5; exit}')
-          # Export to a fresh scratch repo: the .flatpak-builder cache can
-          # reference commit state from machines whose objects never
-          # reached R2, and reusing an old commit requires reading its
-          # full tree. A scratch repo forces a fresh signed commit every
-          # time; the compile cache still does its job.
+          # Incremental publish. Full rebuilds dominated the run (2h07m
+          # of the 2026-09-19 run) because every app re-exported whether
+          # or not it changed. The R2 state/last-published marker names
+          # the commit of the last fully-successful publish (failed runs
+          # never advance it), so git-diffing against it yields exactly
+          # the apps that still owe the repo a build.
+          build_all=1
+          base=""
+          if [ -s last-published ]; then
+            base=$(cat last-published)
+            if git cat-file -e "$base^{commit}" 2>/dev/null; then
+              build_all=0
+              # Infra that shapes every commit (export flags, catchall
+              # icon, repo definition) forces a full rebuild.
+              if git diff --name-only "$base" HEAD -- \
+                  .github/workflows/publish.yml deploy/ \
+                  omapak.flatpakrepo assets/icons/tui.png | grep -q .; then
+                build_all=1
+                echo "infra changed since $base — full rebuild"
+              fi
+            else
+              echo "::warning::marker $base not in history — full rebuild"
+            fi
+          fi
+          changed=""
+          if [ "$build_all" = 0 ]; then
+            changed=$(git diff --name-only "$base" HEAD -- apps/ | cut -d/ -f2 | sort -u)
+            echo "apps changed since $base: ${changed:-<none>}"
+          fi
+          # Exports target a scratch repo. The live repo can't be an
+          # export target: every export regenerates the appstream branch
+          # by walking every ref and diffing against the existing branch,
+          # and the live appstream ref points at a commit whose tree never
+          # fully landed in R2 (missing root dirtree, HTTP 404 — two full
+          # runs died on that read, 2026-09-19). Scratch never reads it.
           rm -rf build-repo
           mkdir -p build-repo/objects build-repo/refs/heads build-repo/refs/remotes build-repo/refs/mirrors
           printf '[core]\nrepo_version=1\nmode=archive-z2\n' > build-repo/config
+          # Seed every omapak app ref plus its objects (hardlinked) so
+          # appstream regeneration covers SKIPPED apps too: xa.appdata
+          # lives in commit metadata and icons are small filez — both
+          # restored from R2. Flathub mirror refs are not seeded; their
+          # metadata-only trees only generate "No appstream data" noise.
+          # An omapak app id can also collide with a flathub BRANCH
+          # mirror (Vish and Keyoxide carry /stable refs) whose dirtrees
+          # never reached the bucket — walking one kills the export
+          # (run 35476937549: every app died on Vish's missing dirtree,
+          # 404 from the bucket), so seed only refs whose tree metadata
+          # reads clean end to end.
+          for reffile in $(find repo/refs/heads/app -type f 2>/dev/null); do
+            name=$(echo "$reffile" | cut -d/ -f5)
+            [ -d "apps/$name" ] || continue
+            ref="${reffile#repo/refs/heads/}"
+            ostree ls -R --repo=repo "$ref" >/dev/null 2>&1 || continue
+            mkdir -p "$(dirname "build-repo/${reffile#repo/}")"
+            cp "$reffile" "build-repo/${reffile#repo/}"
+          done
+          cp -al repo/objects/. build-repo/objects/ 2>/dev/null || cp -a repo/objects/. build-repo/objects/
           failed=""
+          built=""
+          built_refs=""
+          refs_seen=$(find build-repo/refs/heads -type f -exec sha256sum {} + | sort)
           for app in apps/*/; do
             name=$(basename "$app")
+            # Unchanged since the last good publish AND its published ref
+            # survived the ghost purge — a purged ref means the app owes
+            # the repo a build regardless of the marker.
+            if [ "$build_all" = 0 ] && ! grep -qx "$name" <<<"$changed" \
+               && [ -n "$(find repo/refs/heads/app/"$name" -type f 2>/dev/null)" ]; then
+              continue
+            fi
             # Pick the app-id-named manifest like the judge does
             # (omapak-core find_manifest): a plain find grabs whichever
             # .json lands first, which fed flatpak-builder a
@@ -166,33 +248,84 @@ jobs:
                 --gpg-sign="$keyid" \
                 --repo=build-repo ".flatpak-builder/$name" "$manifest" >"/tmp/build-$name.log" 2>&1; then
               tail -5 "/tmp/build-$name.log"
+              # Track the refs this export wrote for the re-stamp pass —
+              # app refs only; the appstream branches are restamped
+              # explicitly below. The grep must not fail the step when
+              # the diff is empty: a fully-cached rebuild can reproduce
+              # the published commit bit-for-bit, leaving the seeded ref
+              # unchanged (E131Receiver, run 35492584728 — one empty
+              # diff killed the step under bash -e).
+              refs_now=$(find build-repo/refs/heads -type f -exec sha256sum {} + | sort)
+              built_refs="$built_refs $(comm -13 <(echo "$refs_seen") <(echo "$refs_now") | awk '{print $2}' | sed 's|^build-repo/refs/heads/||' | grep '^app/' || true)"
+              refs_seen="$refs_now"
+              built="$built $name"
             else
               rc=$?
               if [ "$rc" -eq 124 ]; then
                 echo "flatpak-builder exceeded OMAPAK_PUBLISH_TIMEOUT_SECS (${OMAPAK_PUBLISH_TIMEOUT_SECS:-5400}s) and was killed" >> "/tmp/build-$name.log"
               fi
               tail -30 "/tmp/build-$name.log"
+              # Per-app failures are tolerated (keep the last-good ref,
+              # gate at the end) — but repo-level corruption kills every
+              # export identically, and tolerating it means 2h of doomed
+              # builds before the red X (2026-09-19: two full runs, all
+              # 40 apps, same appstream assertion). Fail the run the
+              # first time an export dies of it.
+              if grep -qE 'flatpak:ERROR|No such metadata object|Export failed: Child process killed by signal' \
+                  "/tmp/build-$name.log"; then
+                echo "::error::$name failed with a repo-level export error — aborting instead of building the rest into the same wall"
+                exit 1
+              fi
               failed="$failed $name"
             fi
             echo "::endgroup::"
           done
-          # Fold successful exports into the restored repo
+          # Fold this run's refs — built apps plus the freshly regenerated
+          # appstream branches — into the live repo. pull-local never
+          # regenerates anything, so the broken historical appstream ref
+          # is simply replaced by the scratch branch.
           ostree pull-local --repo=repo build-repo
+          # flatpak-builder 1.4.11 has no --timestamp passthrough: it shells
+          # out to a bare `flatpak build-export`, which stamps the commit
+          # with the appstream file's mtime. The .flatpak-builder cache can
+          # keep that mtime older than commits clients already hold, and
+          # flatpak then refuses the pull ("Update is older than current
+          # version", 2026-09-19: talaria + sonix both hit it). Re-stamp
+          # every ref written this run — app refs and the appstream
+          # branches — with the current time so each publish is strictly
+          # newer than anything installed. --force: a same-repo restamp
+          # looks like a no-op without it.
+          if [ -n "$built_refs" ]; then
+            for ref in $built_refs appstream/x86_64 appstream2/x86_64; do
+              [ -f "repo/refs/heads/$ref" ] || continue
+              flatpak build-commit-from --timestamp=NOW --force --no-update-summary \
+                --gpg-sign="$keyid" --src-repo=repo repo "$ref"
+            done
+          fi
           # Recorded for the post-push gate: failed apps keep their last
           # good ref in the repo (restored from R2), the rest publish, and
           # the run still goes red so nobody misses it.
+          rt_failed=$(cat /tmp/rt-failed.txt 2>/dev/null || true)
           echo "FAILED_BUILDS=$failed" >> "$GITHUB_ENV"
+          echo "BUILT_APPS=$built" >> "$GITHUB_ENV"
+          # The R2 marker advances only when every app and runtime
+          # succeeded — otherwise the next run re-attempts the failures.
+          if [ -z "$failed" ] && [ -z "$rt_failed" ]; then
+            echo "OMAPAK_ADVANCE_MARKER=1" >> "$GITHUB_ENV"
+          fi
 
       - name: Extract icons from builds (non-blocking)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
-          # Extract the hicolor app icon from each built app and push to R2.
-          # Some apps install their icon under a different name (the OpenRGB
+          # Extract the hicolor app icon from each built app and push to
+          # R2; skipped apps keep the icon their last build pushed. Some
+          # apps install their icon under a different name (the OpenRGB
           # plugins use openrgb-*-plugin.png), so when the app-id match
           # misses, take the largest PNG the app itself shipped.
           for app in apps/*/; do
             name=$(basename "$app")
+            case " ${BUILT_APPS:-} " in *" $name "*) ;; *) continue ;; esac
             icon=$(find ".flatpak-builder/$name/files/share/icons/hicolor" -name "$name*" -type f 2>/dev/null | sort -r | head -1)
             [ -n "$icon" ] || icon=$(find ".flatpak-builder/$name/files/share/icons/hicolor" -name '*.png' -type f -printf '%s %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
             [ -n "$icon" ] || continue
@@ -204,29 +337,15 @@ jobs:
           done
 
 
-      - name: Merge flathub catalog refs (metadata only)
-        run: |
-          curl -sO https://dl.flathub.org/repo/flathub.flatpakrepo
-          grep '^GPGKey=' flathub.flatpakrepo | cut -d= -f2- | base64 -d > flathub-keyring.gpg
-          ostree remote add --repo=repo --gpg-import=flathub-keyring.gpg \
-            flathub https://dl.flathub.org/repo/ 2>/dev/null || true
-          flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
-          flatpak --user remote-ls --columns=ref flathub 2>/dev/null | grep -E '^(app|runtime)/' > /tmp/refs.txt || true
-          # An empty listing means the catalog would vanish from the
-          # summary on re-sign — fail instead.
-          [ -s /tmp/refs.txt ] || { echo "::error::no flathub refs listed"; exit 1; }
-          wc -l /tmp/refs.txt
-          xargs -a /tmp/refs.txt -n 50 ostree pull --repo=repo --mirror \
-            --commit-metadata-only flathub 2>/dev/null || true
-          cd repo
-          find refs/mirrors -type f 2>/dev/null | while read -r f; do
-            ref="${f#refs/mirrors/*/}"
-            mkdir -p "refs/heads/$(dirname "$ref")"
-            cp "$f" "refs/heads/$ref"
-          done
-          cd ..
-          echo "refs going into summary: $(find repo/refs/heads -type f | wc -l)"
-
+      # No flathub mirror step. dl.flathub.org rate-limits bulk object
+      # fetching by IP — GitHub runner pools, Cloudflare Workers, even
+      # residential IPs under load (2026-09-20: three full runs, zero
+      # progress, 13.5k extension refs never mirrorable). Clients get
+      # flathub objects the moment they need them via the worker's 302
+      # fallback instead (worker/src/lib.rs, #181), and the summary's
+      # flathub refs stay as last mirrored in R2. Freshness of those
+      # refs moves to the summary composer; until it lands they are
+      # stale-but-valid (old commits stay installable).
       - name: Sign combined summary
         env:
           OMAPAK_GPG_KEY: ${{ secrets.OMAPAK_GPG_KEY }}

@@ -1,3 +1,4 @@
+import { derived, readable, type Readable } from "svelte/store";
 import { createQuery } from "@tanstack/svelte-query";
 import type { Catalog, FlathubIndex, Report } from "./report";
 
@@ -26,16 +27,22 @@ export function useFlathub() {
     retry: 1,
   });
 }
-
-export function useReport(appId: string) {
-  return createQuery({
-    queryKey: ["report", appId],
-    // Live reports are pushed to R2 by judge-report; the static copy is
-    // only a build-time fallback.
-    queryFn: () =>
-      fetchJson<Report>(`https://repo.omapak.org/reports/${appId}.json`)
-        .catch(() => fetchJson<Report>(`/data/reports/${appId}.json`)),
-    staleTime: Infinity,
-    retry: 1,
-  });
+export function useReport(appId: string | Readable<string>) {
+  const options = derived(
+    typeof (appId as Readable<string>)?.subscribe === "function"
+      ? (appId as Readable<string>)
+      : readable(appId),
+    (id) => ({
+      queryKey: ["report", id],
+      // Live reports are pushed to R2 by judge-report; the static copy is
+      // only a build-time fallback.
+      queryFn: () =>
+        fetchJson<Report>(`https://repo.omapak.org/reports/${id}.json`).catch(() =>
+          fetchJson<Report>(`/data/reports/${id}.json`),
+        ),
+      staleTime: Infinity,
+      retry: 1,
+    }),
+  );
+  return createQuery(options);
 }

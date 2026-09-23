@@ -41,7 +41,18 @@ jobs:
           # phase runs `appstreamcli compose`, a separate addon package
           # on noble. elfutils: the strip phase shells out to eu-strip
           # (the 2026-09 runner image drift dropped all three).
+          # gir1.2-appstream-1.0 + gir1.2-ostree-1.0: flatpak-builder-lint
+          # imports gi's AppStream and OSTree namespaces while loading, so
+          # without the typelibs EVERY subcommand dies with a Python
+          # traceback — that traceback is what the flatpak-builder-lint
+          # findings in every published report are. Measured in a container
+          # built from this same list: move the two typelibs away and both
+          # `flatpak-builder-lint appstream <metainfo>` and
+          # `flatpak-builder-lint manifest <yml>` fail with `ValueError:
+          # Namespace AppStream not available` / `... OSTree not available`;
+          # put them back and the same two commands exit 0.
           sudo apt-get install -y flatpak pipx libarchive-tools appstream-compose appstream elfutils \
+            gir1.2-appstream-1.0 gir1.2-ostree-1.0 \
             pkg-config libcairo2-dev libgirepository1.0-dev libglib2.0-dev
           # Not on PyPI under this name; install from the flathub git repo.
           pipx install git+https://github.com/flathub/flatpak-builder-lint.git
